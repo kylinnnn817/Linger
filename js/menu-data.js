@@ -25,7 +25,7 @@
  * 【注意】
  *   - id 上線後不可改：購物車與佔位圖配色都靠它；刪除菜色會自動從顧客購物車剔除。
  *   - 致敏原代碼依 2026-11-09 官方代碼表，並按配料逐項核對。
- *   - 目前 47 道菜皆已定價；日後新增未定價品項仍可填 null，
+ *   - 目前 51 道菜皆已定價；日後新增未定價品項仍可填 null，
  *     前台會顯示「價格待定」並暫停加入購物車。
  *   - 檔案請保持 UTF-8（無 BOM）編碼。
  * ============================================================= */
@@ -51,7 +51,7 @@ const LINGER_ALLERGENS = {
 };
 
 const LINGER_MENU = {
-  version: "2026-11-09",  // 每次修改菜單順手更新
+  version: "2026-11-09b",  // 每次修改菜單順手更新
   serviceCharge: 0,       // 本店不收取服務費（日後如需加收，改為 0.10）
   currency: "MOP",
 
@@ -509,6 +509,22 @@ const LINGER_MENU = {
           hue: 328,
         },
         {
+          id: "yanchao-guava-pomelo",
+          zh: "燕巢芭樂柚香",
+          en: "Yanchao Guava Pomelo Aroma",
+          price: 52,
+          descZh: "燕巢芭樂的清甜、文旦柚子的微酸與蜂蜜柚子醬，落在細白的雪花冰上；季節很短，這碗很亮。",
+          descEn: "The sweetness of Yanchao guava, the gentle tartness of pomelo and honey pomelo jam over fine snow ice — a short season, a bright bowl.",
+          ingredients: ["雪花冰", "燕巢芭樂", "文旦柚子果肉", "蜂蜜柚子醬", "煉乳（可選）", "檸檬汁", "梅粉（可選）"],
+          ingredientsEn: ["snow ice", "Yanchao guava", "pomelo pulp", "honey pomelo jam", "condensed milk (optional)", "lemon juice", "plum powder (optional)"],
+          allergens: [6],
+          story: "燕巢的芭樂在秋天最好，文旦的酸正好把甜托起來。我們把這個季節縮小，放在一碗雪花冰裡，賣完就等明年。",
+          storyEn: "Yanchao guava is at its best in autumn; pomelo's tartness lifts the sweetness. We shrink the season into a bowl of snow ice — when it's gone, we wait for next year.",
+          img: "img/yanchao-guava-pomelo.jpg",
+          badge: { zh: "季節限定", en: "Seasonal" },
+          hue: 96,
+        },
+        {
           id: "mesona-mist",
           zh: "黑糖仙草霧",
           en: "Brown Sugar Mesona Mist",
@@ -610,6 +626,52 @@ const LINGER_MENU = {
           allergens: [],
           img: "img/oriental-beauty.jpg",
           hue: 40,
+        },
+        {
+          id: "apple-sidra",
+          zh: "蘋果西打",
+          en: "Apple Sidra",
+          price: 18,
+          descZh: "蘋果香氣在氣泡裡醒來，冰鎮後一口喝下，是臺灣餐桌上最熟悉的黃色罐子。",
+          descEn: "Apple aroma wakes in the bubbles; ice-cold, it is the familiar yellow can on every Taiwanese table.",
+          ingredients: ["碳酸水", "蘋果汁", "砂糖", "香料"],
+          ingredientsEn: ["carbonated water", "apple juice", "sugar", "flavouring"],
+          allergens: [],
+          story: "從辦桌到熱炒店，蘋果西打總在桌邊。它不只是汽水，是很多人對臺灣餐桌的第一個記憶。",
+          storyEn: "From banquet tables to late-night stir-fries, Apple Sidra is always nearby — not just a soda, but a first memory of the Taiwanese table.",
+          img: "img/apple-sidra.jpg",
+          hue: 48,
+        },
+        {
+          id: "heysong-sarsaparilla",
+          zh: "黑松沙士",
+          en: "HeySong Sarsaparilla",
+          price: 15,
+          descZh: "草本香氣與氣泡一起升起，有人說像藥水，有人說那是童年；冰涼喝下，才知道這是臺灣才有的味道。",
+          descEn: "Herbal aroma and bubbles rise together — some call it medicine, some call it childhood. Ice-cold, it tastes like nowhere else but Taiwan.",
+          ingredients: ["碳酸水", "砂糖", "焦糖", "沙士香料"],
+          ingredientsEn: ["carbonated water", "sugar", "caramel", "sarsaparilla flavouring"],
+          allergens: [],
+          story: "黑松沙士的氣味不必解釋。喝一口，很多人就回到小時候的雜貨店，或某個炎熱的午後。",
+          storyEn: "HeySong Sarsaparilla needs no explanation. One sip takes many people back to the corner shop of their childhood, or to some hot afternoon.",
+          img: "img/heysong-sarsaparilla.jpg",
+          hue: 8,
+        },
+        {
+          id: "taiwan-beer",
+          zh: "台灣啤酒",
+          en: "Taiwan Beer",
+          price: 28,
+          descZh: "金黃色的麥香與氣泡，冰鎮後最適合配一桌熱炒；這是臺灣餐桌上最直接、最爽快的一口。",
+          descEn: "Golden malt and bubbles, best ice-cold beside a table of stir-fries — the most direct, most refreshing sip on a Taiwanese table.",
+          ingredients: ["水", "大麥芽", "蓬萊米", "啤酒花"],
+          ingredientsEn: ["water", "barley malt", "Taiwan rice", "hops"],
+          allergens: [1, 14],
+          story: "台灣啤酒是很多人對臺灣餐桌的第一印象。泡沫升起的時候，話也跟著多了起來。",
+          storyEn: "Taiwan Beer is many people's first impression of the Taiwanese table. When the foam rises, the conversation follows.",
+          img: "img/taiwan-beer.jpg",
+          badge: { zh: "經典", en: "Classic" },
+          hue: 132,
         },
       ],
     },

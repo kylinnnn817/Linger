@@ -5,7 +5,7 @@ LINGER 菜單照片放置說明
    sanbeiji.jpg、wood-shavings-dongding.jpg
    （id 定義於 js/menu-data.js 每道菜的 id 欄位）
 
-   目前本資料夾已放入 47 道菜的正式照片（800×800、jpg），
+   目前本資料夾已放入 51 道菜的正式照片（800×800、jpg），
    檔名與 menu-data.js 的 id 一一對應；換圖時請沿用相同檔名。
 
 2. 支援 jpg / png / webp；建議使用 jpg、正方形 800×800 以上、
