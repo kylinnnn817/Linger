@@ -22,6 +22,10 @@
 const LingerUI = (function () {
   "use strict";
 
+  function L(zh, en) {
+    return LingerI18n.pick(zh, en);
+  }
+
   var modalRoot = document.getElementById("modal-root");
   var toastRoot = document.getElementById("toast-root");
   var sendingOverlay = document.getElementById("sending-overlay");
@@ -50,7 +54,7 @@ const LingerUI = (function () {
   }
 
   function money(n) {
-    if (n === null || n === undefined || n === "") return "價格待定";
+    if (n === null || n === undefined || n === "") return L("價格待定", "Price TBC");
     return "MOP " + fmtPrice(n);
   }
 
@@ -64,7 +68,7 @@ const LingerUI = (function () {
 
   function fmtTable(table) {
     var t = normalizeTable(table);
-    return t ? "Table " + t : "未設定";
+    return t ? L("桌號 " + t, "Table " + t) : L("未設定", "Not set");
   }
 
   /* -----------------------------------------------------------
@@ -149,7 +153,7 @@ const LingerUI = (function () {
       hueFor(item, category) +
       '" aria-hidden="true">' +
       '<span class="wc-ph-name">' +
-      esc(item && item.zh) +
+      esc(item ? L(item.zh, item.en) : "") +
       "</span>" +
       icon +
       "</div>"
@@ -162,7 +166,7 @@ const LingerUI = (function () {
         '<img src="' +
         esc(item.img) +
         '" alt="' +
-        esc(item.zh) +
+        esc(L(item.zh, item.en)) +
         '" loading="lazy" decoding="async">'
       );
     }
@@ -177,7 +181,7 @@ const LingerUI = (function () {
     return codes
       .map(function (code) {
         var a = LINGER_ALLERGENS[code];
-        var title = a ? a.zh + " " + a.en : "";
+        var title = a ? L(a.zh, a.en) : "";
         return (
           '<span class="alg-dot" title="' +
           esc(title) +
@@ -202,7 +206,7 @@ const LingerUI = (function () {
           '"><span class="allergen-chip-code">' +
           esc(code) +
           "</span>" +
-          esc(a.zh) +
+          esc(L(a.zh, a.en)) +
           "</button>"
         );
       })
@@ -273,6 +277,13 @@ const LingerUI = (function () {
 
     toastRoot.appendChild(el);
     schedule();
+  }
+
+  function clearToasts() {
+    if (!toastRoot) return;
+    while (toastRoot.firstElementChild) {
+      toastRoot.removeChild(toastRoot.firstElementChild);
+    }
   }
 
   /* -----------------------------------------------------------
@@ -383,7 +394,8 @@ const LingerUI = (function () {
       (opts.labelledBy ? ' aria-labelledby="' + esc(opts.labelledBy) + '"' : "") +
       ">" +
       (dismissible
-        ? '<button type="button" class="modal-close" data-modal-close aria-label="關閉 Close">' +
+        ? '<button type="button" class="modal-close" data-modal-close aria-label="' +
+          esc(L("關閉", "Close")) + '">' +
           icons.close +
           "</button>"
         : "") +
@@ -526,11 +538,8 @@ const LingerUI = (function () {
           '<span class="legend-code">' +
           esc(code) +
           "</span>" +
-          '<span class="legend-zh">' +
-          esc(a.zh) +
-          "</span>" +
-          '<span class="legend-en">' +
-          esc(a.en) +
+          '<span class="legend-name">' +
+          esc(L(a.zh, a.en)) +
           "</span>" +
           "</div>"
         );
@@ -541,14 +550,24 @@ const LingerUI = (function () {
       labelledBy: "legend-title",
       bodyHTML:
         '<div class="modal-scroll"><div class="modal-body">' +
-        '<p class="modal-kicker">Allergen Guide</p>' +
-        '<h2 class="modal-title" id="legend-title">致敏原圖例</h2>' +
-        '<p class="modal-title-en">Codes 1–16 · 中英對照</p>' +
+        '<p class="modal-kicker">' +
+        esc(L("致敏原及飲食禁忌", "Allergen & Dietary Codes")) +
+        "</p>" +
+        '<h2 class="modal-title" id="legend-title">' +
+        esc(L("致敏原圖例", "Allergen Guide")) +
+        "</h2>" +
+        '<p class="legend-sub">' +
+        esc(L("代碼 1–16", "Codes 1–16")) +
+        "</p>" +
         '<div class="legend-list">' +
         rows +
         "</div>" +
-        '<p class="modal-desc">標示僅供參考，食材可能因季節或供應商調整。如對特定食材嚴重過敏，請於點餐時告知服務人員。' +
-        '<br>Codes are for reference only. Please inform our staff of any severe allergies.</p>' +
+        '<p class="modal-desc">' +
+        esc(L(
+          "代碼僅供參考，食材可能因季節或供應商調整；如對特定食材嚴重過敏，請於點餐時告知服務人員。",
+          "Codes are for reference only; ingredients may change with season or supplier. Please inform our staff of any severe allergies."
+        )) +
+        "</p>" +
         "</div></div>",
     });
   }
@@ -567,7 +586,7 @@ const LingerUI = (function () {
       '<path d="M32 46.5v5M29.5 49h5"/>' +
       "</svg>" +
       '<p class="sending-text">' +
-      esc(message || "送單中…") +
+      esc(message || L("送單中…", "Sending…")) +
       "</p>";
     sendingOverlay.setAttribute("role", "status");
     sendingOverlay.hidden = false;
@@ -595,6 +614,7 @@ const LingerUI = (function () {
     allergenChips: allergenChips,
     chipList: chipList,
     toast: toast,
+    clearToasts: clearToasts,
     openModal: openModal,
     closeTopModal: closeTopModal,
     isModalOpen: isModalOpen,

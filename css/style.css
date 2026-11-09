@@ -274,9 +274,11 @@ html.modal-open {
 }
 
 .table-chip-label {
+  flex: 0 0 auto;
   font-size: 9px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+  white-space: nowrap;
   color: var(--ink-faint);
 }
 
@@ -2108,6 +2110,7 @@ html.modal-open {
 .foot-legend-btn {
   display: inline-flex;
   align-items: center;
+  gap: 7px;
   min-height: var(--tap-min);
   margin-top: 2px;
   font-size: 12px;
@@ -2446,5 +2449,193 @@ html.modal-open {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* -------------------------------------------------------------
+   18. 語言切換 / 單一語言排版
+   ------------------------------------------------------------- */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+  padding: 3px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.lang-switch button {
+  min-width: 34px;
+  min-height: 32px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.lang-switch button:hover {
+  color: var(--ochre-deep);
+}
+
+.lang-switch button[aria-pressed="true"] {
+  background: var(--paper-2);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.table-modal-lang {
+  display: flex;
+  justify-content: flex-end;
+  /* 讓出右上角關閉鈕的空間，避免 EN 按鈕被蓋住 */
+  padding-right: 54px;
+  margin: -2px 0 10px;
+}
+
+/* 主標題（依語言只渲染一個） */
+.brand-slogan {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  letter-spacing: 0.16em;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.brand-slogan--en {
+  font-size: 13.5px;
+  letter-spacing: 0.01em;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+.hero-slogan {
+  font-family: var(--font-serif);
+  font-size: 25px;
+  letter-spacing: 0.14em;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.hero-slogan--en {
+  font-size: 18.5px;
+  letter-spacing: 0.005em;
+  line-height: 1.6;
+}
+
+.cat-tab-label {
+  font-family: var(--font-serif);
+  font-size: 15.5px;
+  letter-spacing: 0.1em;
+}
+
+.side-link-label {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+}
+
+.card-name {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.foot-block-text {
+  font-size: 11.5px;
+  line-height: 1.9;
+  color: var(--ink-soft);
+}
+
+.side-foot .foot-block-text {
+  font-size: 11px;
+}
+
+.legend-sub {
+  margin-top: 3px;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.legend-name {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+/* 英文版排版微調：英文不適合中文的寬字距與全大寫小字 */
+html[lang="en"] .cat-tab-label {
+  font-size: 12.5px;
+  letter-spacing: 0.035em;
+}
+
+html[lang="en"] .side-link-label {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+html[lang="en"] .card-name {
+  font-size: 15.5px;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+
+html[lang="en"] .page-title {
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+}
+
+html[lang="en"] .success-title {
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+
+html[lang="en"] .modal-title {
+  font-size: 22px;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+}
+
+html[lang="en"] .cart-item-name {
+  font-size: 14.5px;
+  letter-spacing: 0.01em;
+}
+
+html[lang="en"] .brand-quote-text,
+html[lang="en"] .hero-quote-text {
+  line-height: 1.9;
+}
+
+html[lang="en"] .modal-story {
+  line-height: 1.85;
+}
+
+html[lang="en"] .foot-block-text {
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+html[lang="en"] .legend-name {
+  font-size: 12.5px;
+}
+
+html[lang="en"] .foot-mark {
+  letter-spacing: 0.18em;
+}
+
+@media (min-width: 640px) {
+  .hero-slogan {
+    font-size: 29px;
+  }
+
+  .hero-slogan--en {
+    font-size: 21px;
   }
 }

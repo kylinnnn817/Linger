@@ -18,6 +18,14 @@
 const LingerApp = (function () {
   "use strict";
 
+  function L(zh, en) {
+    return LingerI18n.pick(zh, en);
+  }
+
+  function isZh() {
+    return LingerI18n.isZh();
+  }
+
   /* -----------------------------------------------------------
      常數 / 儲存
      ----------------------------------------------------------- */
@@ -123,25 +131,34 @@ const LingerApp = (function () {
      ----------------------------------------------------------- */
   function renderBrand() {
     var brand = LINGER_MENU.brand || {};
+    var slogan = L(brand.sloganZh, brand.sloganEn);
+    var quote = L(brand.quoteZh, brand.quoteEn);
+    var quoteFrom = L(brand.quoteFrom, brand.quoteFromEn);
+    var langClass = isZh() ? "zh" : "en";
 
     if (els.sideBrandQuote) {
       els.sideBrandQuote.innerHTML =
-        '<p class="brand-slogan-zh">' + LingerUI.esc(brand.sloganZh) + "</p>" +
-        '<p class="brand-slogan-en">' + LingerUI.esc(brand.sloganEn) + "</p>" +
+        '<p class="brand-slogan brand-slogan--' + langClass + '">' +
+        LingerUI.esc(slogan) + "</p>" +
         '<blockquote class="brand-quote">' +
-        '<p class="brand-quote-text">' + LingerUI.esc(brand.quoteZh) + "</p>" +
-        '<cite class="brand-quote-from">' + LingerUI.esc(brand.quoteFrom) + "</cite>" +
+        '<p class="brand-quote-text">' + LingerUI.esc(quote) + "</p>" +
+        '<cite class="brand-quote-from">' + LingerUI.esc(quoteFrom) + "</cite>" +
         "</blockquote>";
     }
 
     if (els.menuHero) {
       els.menuHero.innerHTML =
-        '<p class="hero-slogan-zh">' + LingerUI.esc(brand.sloganZh) + "</p>" +
-        '<p class="hero-slogan-en">' + LingerUI.esc(brand.sloganEn) + "</p>" +
+        '<p class="hero-slogan hero-slogan--' + langClass + '">' +
+        LingerUI.esc(slogan) + "</p>" +
         '<blockquote class="hero-quote">' +
-        '<p class="hero-quote-text">' + LingerUI.esc(brand.quoteZh) + "</p>" +
-        '<cite class="hero-quote-from">' + LingerUI.esc(brand.quoteFrom) + "</cite>" +
+        '<p class="hero-quote-text">' + LingerUI.esc(quote) + "</p>" +
+        '<cite class="hero-quote-from">' + LingerUI.esc(quoteFrom) + "</cite>" +
         "</blockquote>";
+    }
+
+    var brandSub = document.getElementById("brand-name-sub");
+    if (brandSub) {
+      brandSub.textContent = L(brand.subZh, brand.subEn);
     }
   }
 
@@ -150,14 +167,17 @@ const LingerApp = (function () {
     return (
       (withRule ? '<div class="foot-rule"></div>' : "") +
       '<div class="foot-block">' +
-      '<p class="foot-block-zh">' + LingerUI.esc(foot.allergyZh) + "</p>" +
-      '<p class="foot-block-en">' + LingerUI.esc(foot.allergyEn) + "</p>" +
+      '<p class="foot-block-text">' +
+      LingerUI.esc(L(foot.allergyZh, foot.allergyEn)) +
+      "</p>" +
       "</div>" +
       '<button type="button" class="foot-legend-btn" data-open-legend>' +
       '<span class="foot-legend-mark">1–16</span>' +
-      "致敏原圖例 · Allergen Guide" +
+      LingerUI.esc(L("致敏原圖例", "Allergen Guide")) +
       "</button>" +
-      '<p class="foot-mark">LINGER · 一碟呷甘，一味流連</p>'
+      '<p class="foot-mark">' +
+      LingerUI.esc(L("LINGER · 一碟呷甘，一味流連", "LINGER · A plate of lingering sweetness")) +
+      "</p>"
     );
   }
 
@@ -171,15 +191,139 @@ const LingerApp = (function () {
     return (
       '<div class="page-foot">' +
       '<div class="foot-block">' +
-      '<p class="foot-block-zh">' + LingerUI.esc(foot.allergyZh) + "</p>" +
-      '<p class="foot-block-en">' + LingerUI.esc(foot.allergyEn) + "</p>" +
+      '<p class="foot-block-text">' +
+      LingerUI.esc(L(foot.allergyZh, foot.allergyEn)) +
+      "</p>" +
       "</div>" +
       '<button type="button" class="foot-legend-btn" data-open-legend>' +
       '<span class="foot-legend-mark">1–16</span>' +
-      "致敏原圖例 · Allergen Guide" +
+      LingerUI.esc(L("致敏原圖例", "Allergen Guide")) +
       "</button>" +
       "</div>"
     );
+  }
+
+  /* -----------------------------------------------------------
+     語言切換 / 靜態文案
+     ----------------------------------------------------------- */
+  function langSwitchHTML() {
+    return (
+      '<div class="lang-switch lang-switch--inline" role="group" aria-label="' +
+      LingerUI.esc(L("語言切換", "Language")) +
+      '">' +
+      '<button type="button" data-lang="zh" aria-pressed="' +
+      (isZh() ? "true" : "false") +
+      '">' +
+      LingerUI.esc(L("繁中", "ZH")) +
+      "</button>" +
+      '<button type="button" data-lang="en" aria-pressed="' +
+      (isZh() ? "false" : "true") +
+      '">EN</button>' +
+      "</div>"
+    );
+  }
+
+  function renderLangSwitch() {
+    var wrap = document.getElementById("lang-switch");
+    if (!wrap) return;
+
+    wrap.setAttribute("aria-label", L("語言切換", "Language"));
+
+    var zhBtn = wrap.querySelector('[data-lang="zh"]');
+    var enBtn = wrap.querySelector('[data-lang="en"]');
+
+    if (zhBtn) {
+      zhBtn.textContent = L("繁中", "ZH");
+      zhBtn.setAttribute("aria-pressed", isZh() ? "true" : "false");
+    }
+    if (enBtn) {
+      enBtn.textContent = "EN";
+      enBtn.setAttribute("aria-pressed", isZh() ? "false" : "true");
+    }
+  }
+
+  function renderStaticTexts() {
+    document.title = L(
+      "LINGER · 一碟呷甘，一味流連",
+      "LINGER · A plate of lingering sweetness"
+    );
+
+    var meta = document.querySelector('meta[name="description"]');
+    if (meta) {
+      meta.setAttribute(
+        "content",
+        L(
+          "LINGER 一碟呷甘，一味流連 — 內用掃碼點餐。",
+          "LINGER — A plate of lingering sweetness, a flavor that keeps you staying. QR-code dine-in ordering."
+        )
+      );
+    }
+
+    var skip = document.getElementById("skip-link");
+    if (skip) skip.textContent = L("跳至主要內容", "Skip to content");
+
+    var brandSub = document.getElementById("brand-name-sub");
+    var brand = LINGER_MENU.brand || {};
+    if (brandSub) brandSub.textContent = L(brand.subZh, brand.subEn);
+
+    var tableLabel = document.getElementById("table-chip-label");
+    if (tableLabel) tableLabel.textContent = L("桌號", "Table");
+
+    var sideNav = document.getElementById("side-nav");
+    var catNav = document.getElementById("cat-nav");
+    if (sideNav) sideNav.setAttribute("aria-label", L("菜單分類", "Menu categories"));
+    if (catNav) catNav.setAttribute("aria-label", L("菜單分類", "Menu categories"));
+
+    var viewMenu = document.getElementById("view-menu");
+    if (viewMenu) viewMenu.setAttribute("aria-label", L("菜單", "Menu"));
+    var viewCart = document.getElementById("view-cart");
+    if (viewCart) viewCart.setAttribute("aria-label", L("購物車", "Cart"));
+    var viewCheckout = document.getElementById("view-checkout");
+    if (viewCheckout) viewCheckout.setAttribute("aria-label", L("結帳", "Checkout"));
+    var viewSuccess = document.getElementById("view-success");
+    if (viewSuccess) {
+      viewSuccess.setAttribute("aria-label", L("訂單確認", "Order confirmation"));
+    }
+  }
+
+  function setLanguage(lang) {
+    var next = lang === "en" ? "en" : "zh";
+    if (next === LingerI18n.get()) return;
+
+    var openForm = document.querySelector("[data-table-form]");
+    var draft = null;
+    var tableMode = "set";
+    if (openForm) {
+      var openInput = openForm.querySelector("#table-input");
+      draft = openInput ? openInput.value : "";
+      tableMode = openForm.getAttribute("data-table-mode") || "set";
+    }
+
+    LingerI18n.set(next);
+    // 避免切換語言後，畫面上還留著另一種語言的提示
+    LingerUI.clearToasts();
+
+    renderStaticTexts();
+    renderLangSwitch();
+    renderBrand();
+    renderFooter();
+    renderNav();
+    renderMenu();
+    updateTableChip();
+    updateCartChrome();
+
+    if (state.view === "cart") {
+      renderCart();
+    } else if (state.view === "checkout") {
+      renderCheckout();
+    } else if (state.view === "success") {
+      renderSuccess();
+    }
+
+    if (openForm) {
+      LingerUI.closeTopModal();
+      openTableModal({ mode: tableMode, initialValue: draft });
+    }
   }
 
   /* -----------------------------------------------------------
@@ -188,12 +332,16 @@ const LingerApp = (function () {
   function updateTableChip() {
     var table = LingerUI.normalizeTable(state.table);
     if (els.tableChipValue) els.tableChipValue.textContent = table || "—";
+
+    var label = document.getElementById("table-chip-label");
+    if (label) label.textContent = L("桌號", "Table");
+
     if (els.tableChip) {
       els.tableChip.setAttribute(
         "aria-label",
         table
-          ? "目前桌號 Table " + table + "，點擊更換"
-          : "尚未設定桌號，點擊設定"
+          ? L("目前桌號 " + table + "，點擊更換", "Current table " + table + ". Tap to change.")
+          : L("尚未設定桌號，點擊設定", "No table set. Tap to set your table.")
       );
     }
   }
@@ -215,40 +363,77 @@ const LingerApp = (function () {
     var isFirst = mode === "first";
     var changing = mode === "change" && !!current;
     var canChoose = changing && count > 0;
+    var initialValue =
+      opts.initialValue !== undefined ? String(opts.initialValue) : current;
 
-    var title = isFirst ? "請問您的桌號？" : changing ? "更換桌號" : "設定桌號";
-    var kicker = isFirst ? "Welcome to LINGER" : changing ? "Change Table" : "Table Number";
+    var title = isFirst
+      ? L("請問您的桌號？", "What is your table number?")
+      : changing
+        ? L("更換桌號", "Change Table")
+        : L("設定桌號", "Set Your Table");
+    var kicker = isFirst
+      ? L("歡迎光臨 LINGER", "Welcome to LINGER")
+      : changing
+        ? L("更換桌號", "Change Table")
+        : L("桌號", "Table Number");
     var desc = changing
-      ? "請輸入新的桌號，餐點將送至該桌。"
-      : "請輸入桌上 QR Code 旁的桌號，我們會將餐點送至您的桌邊。";
-    var descEn = changing
-      ? "Please enter your new table number."
-      : "Please enter the table number shown beside your QR code.";
+      ? L(
+          "請輸入新的桌號，餐點將送至該桌。",
+          "Please enter your new table number. Your food will be served there."
+        )
+      : L(
+          "請輸入桌上二維碼旁的桌號，我們會將餐點送至您的桌邊。",
+          "Please enter the table number shown beside your QR code. We will serve your food at your table."
+        );
 
     var cartNote = canChoose
-      ? '<p class="table-modal-cart">購物車目前有 <b>' + count + "</b> 件餐點，換桌後要保留嗎？" +
-        '<span class="table-modal-cart-en">You have ' + count + " item" +
-        (count === 1 ? "" : "s") + " in your cart — keep them when changing tables?</span></p>"
+      ? '<p class="table-modal-cart">' +
+        LingerUI.esc(L("購物車目前有 ", "You have ")) +
+        "<b>" + count + "</b>" +
+        LingerUI.esc(
+          L(
+            " 件餐點，換桌後要保留嗎？",
+            count === 1
+              ? " item in your cart — keep it when changing tables?"
+              : " items in your cart — keep them when changing tables?"
+          )
+        ) +
+        "</p>"
       : "";
 
     var actionsHTML = canChoose
       ? '<div class="table-modal-actions">' +
-        '<button type="submit" class="btn btn--primary btn--block">保留餐點 · Keep order</button>' +
+        '<button type="submit" class="btn btn--primary btn--block">' +
+        LingerUI.esc(L("保留餐點", "Keep my order")) +
+        "</button>" +
         '<button type="button" class="btn btn--ghost btn--block" data-clear-cart>' +
-        "清空重來 · Start over</button>" +
+        LingerUI.esc(L("清空重來", "Start over")) +
+        "</button>" +
         "</div>"
       : '<div class="table-modal-actions">' +
-        '<button type="submit" class="btn btn--primary btn--block">確認桌號 · Confirm</button>' +
+        '<button type="submit" class="btn btn--primary btn--block">' +
+        LingerUI.esc(L("確認桌號", "Confirm")) +
+        "</button>" +
         "</div>";
 
     var laterHTML = isFirst
-      ? '<button type="button" class="table-modal-later" data-table-later>稍後設定 · Later</button>'
+      ? '<button type="button" class="table-modal-later" data-table-later>' +
+        LingerUI.esc(L("稍後設定", "Set later")) +
+        "</button>"
       : "";
 
     var noteHTML = canChoose
-      ? '<p class="table-modal-note table-modal-warn">清空後購物車內容無法復原。<br>' +
-        "Starting over will empty your cart.</p>"
-      : '<p class="table-modal-note">送出訂單前都可於右上角更換桌號。</p>';
+      ? '<p class="table-modal-note table-modal-warn">' +
+        LingerUI.esc(L("清空後購物車內容無法復原。", "Starting over will empty your cart.")) +
+        "</p>"
+      : '<p class="table-modal-note">' +
+        LingerUI.esc(
+          L(
+            "送出訂單前都可於右上角更換桌號。",
+            "You can change your table from the top bar before sending your order."
+          )
+        ) +
+        "</p>";
 
     var modal = LingerUI.openModal({
       labelledBy: "table-modal-title",
@@ -256,15 +441,20 @@ const LingerApp = (function () {
       dismissible: !isFirst,
       bodyHTML:
         '<div class="table-modal-body">' +
-        '<p class="modal-kicker">' + kicker + "</p>" +
-        '<h2 class="table-modal-title" id="table-modal-title">' + title + "</h2>" +
-        '<p class="table-modal-desc">' + desc + "<br>" + descEn + "</p>" +
-        '<form data-table-form novalidate>' +
+        '<div class="table-modal-lang">' + langSwitchHTML() + "</div>" +
+        '<p class="modal-kicker">' + LingerUI.esc(kicker) + "</p>" +
+        '<h2 class="table-modal-title" id="table-modal-title">' +
+        LingerUI.esc(title) + "</h2>" +
+        '<p class="table-modal-desc">' + LingerUI.esc(desc) + "</p>" +
+        '<form data-table-form data-table-mode="' + mode + '" novalidate>' +
         '<label class="field">' +
-        '<span class="field-label">桌號 · Table Number</span>' +
+        '<span class="field-label">' +
+        LingerUI.esc(L("桌號", "Table Number")) +
+        "</span>" +
         '<input class="field-input" id="table-input" name="table" type="text" ' +
-        'inputmode="text" autocomplete="off" maxlength="8" placeholder="如 12 或 A3" ' +
-        'value="' + LingerUI.esc(current) + '">' +
+        'inputmode="text" autocomplete="off" maxlength="8" placeholder="' +
+        LingerUI.esc(L("如 12 或 A3", "e.g. 12 or A3")) + '" ' +
+        'value="' + LingerUI.esc(initialValue) + '">' +
         "</label>" +
         cartNote +
         actionsHTML +
@@ -284,7 +474,7 @@ const LingerApp = (function () {
       var value = LingerUI.normalizeTable(input.value);
 
       if (!value) {
-        LingerUI.toast("請輸入桌號 · Please enter a table number");
+        LingerUI.toast(L("請輸入桌號", "Please enter a table number"));
         input.focus();
         return;
       }
@@ -303,9 +493,9 @@ const LingerApp = (function () {
       focusTableChip();
 
       if (clearCart) {
-        LingerUI.toast("已清空購物車 · Table " + value);
+        LingerUI.toast(L("已清空購物車 · 桌號 " + value, "Cart cleared · Table " + value));
       } else {
-        LingerUI.toast("桌號已設定 · Table " + value);
+        LingerUI.toast(L("桌號已設定 · " + value, "Table set · " + value));
       }
     }
 
@@ -347,7 +537,7 @@ const LingerApp = (function () {
             (active ? " is-active" : "") +
             '" data-sub="' + LingerUI.esc(sub.id) + '"' +
             (active ? ' aria-current="true"' : "") +
-            ">" + LingerUI.esc(sub.zh) + "</button>"
+            ">" + LingerUI.esc(L(sub.zh, sub.en)) + "</button>"
           );
         }
         return (
@@ -355,7 +545,7 @@ const LingerApp = (function () {
           (active ? " is-active" : "") +
           '" data-sub="' + LingerUI.esc(sub.id) + '"' +
           (active ? ' aria-current="true"' : "") +
-          ">" + LingerUI.esc(sub.zh) + "</button>"
+          ">" + LingerUI.esc(L(sub.zh, sub.en)) + "</button>"
         );
       })
       .join("");
@@ -374,8 +564,9 @@ const LingerApp = (function () {
             '" data-cat="' + LingerUI.esc(category.id) + '"' +
             (active ? ' aria-current="true"' : "") +
             ">" +
-            '<span class="cat-tab-zh">' + LingerUI.esc(category.zh) + "</span>" +
-            '<span class="cat-tab-en">' + LingerUI.esc(category.en) + "</span>" +
+            '<span class="cat-tab-label">' +
+            LingerUI.esc(L(category.zh, category.en)) +
+            "</span>" +
             "</button>"
           );
         })
@@ -392,8 +583,9 @@ const LingerApp = (function () {
           '" data-cat="' + LingerUI.esc(category.id) + '"' +
           (active ? ' aria-current="true"' : "") +
           ">" +
-          '<span class="side-link-zh">' + LingerUI.esc(category.zh) + "</span>" +
-          '<span class="side-link-en">' + LingerUI.esc(category.en) + "</span>" +
+          '<span class="side-link-label">' +
+          LingerUI.esc(L(category.zh, category.en)) +
+          "</span>" +
           "</button>";
 
         if (active && category.subcategories && category.subcategories.length) {
@@ -481,28 +673,41 @@ const LingerApp = (function () {
      菜單卡片
      ----------------------------------------------------------- */
   function cardHTML(item, category) {
+    var name = L(item.zh, item.en);
     var badge = item.badge
-      ? '<span class="card-badge">' + LingerUI.esc(item.badge.zh) + "</span>"
+      ? '<span class="card-badge">' +
+        LingerUI.esc(L(item.badge.zh, item.badge.en)) +
+        "</span>"
       : "";
     var tbc = item.price === null || item.price === undefined;
     var actionHTML = tbc
-      ? '<span class="card-tbc">洽詢</span>'
+      ? '<span class="card-tbc">' + LingerUI.esc(L("洽詢", "Ask staff")) + "</span>"
       : '<button type="button" class="card-add" data-add="' + LingerUI.esc(item.id) + '" ' +
-        'aria-label="加入購物車：' + LingerUI.esc(item.zh) + '">' +
+        'aria-label="' +
+        LingerUI.esc(L("加入購物車：", "Add to cart: ") + name) +
+        '">' +
         LingerUI.icons.plus +
         "</button>";
+
+    var aria = L(
+      name + "，" + LingerUI.money(item.price),
+      name + ", " + LingerUI.money(item.price)
+    );
 
     return (
       '<article class="menu-card" data-item-id="' + LingerUI.esc(item.id) + '" ' +
       'tabindex="0" role="button" aria-haspopup="dialog" ' +
-      'aria-label="' + LingerUI.esc(item.zh + " " + item.en + "，" + LingerUI.money(item.price)) + '">' +
+      'aria-label="' + LingerUI.esc(aria) + '">' +
       '<div class="card-thumb">' + LingerUI.mediaHTML(item, category) + "</div>" +
       '<div class="card-body">' +
-      '<h3 class="card-name-zh">' + LingerUI.esc(item.zh) + "</h3>" +
-      '<p class="card-name-en">' + LingerUI.esc(item.en) + "</p>" +
-      '<p class="card-desc">' + LingerUI.esc(item.descZh) + "</p>" +
+      '<h3 class="card-name">' + LingerUI.esc(name) + "</h3>" +
+      '<p class="card-desc">' +
+      LingerUI.esc(L(item.descZh, item.descEn)) +
+      "</p>" +
       '<div class="card-foot">' +
-      '<span class="card-price' + (tbc ? " card-price--tbc" : "") + '">' + LingerUI.money(item.price) + "</span>" +
+      '<span class="card-price' + (tbc ? " card-price--tbc" : "") + '">' +
+      LingerUI.money(item.price) +
+      "</span>" +
       '<span class="card-allergens">' + LingerUI.allergenDots(item.allergens) + "</span>" +
       actionHTML +
       "</div>" +
@@ -532,7 +737,9 @@ const LingerApp = (function () {
     var items = visibleItems();
     if (!items.length) {
       els.menuGrid.innerHTML =
-        '<p class="page-sub" style="padding:28px 4px;">此分類暫無餐點 · No items in this category.</p>';
+        '<p class="page-sub" style="padding:28px 4px;">' +
+        LingerUI.esc(L("此分類暫無餐點。", "No items in this category.")) +
+        "</p>";
       return;
     }
 
@@ -557,7 +764,12 @@ const LingerApp = (function () {
     if (els.cartButton) {
       els.cartButton.setAttribute(
         "aria-label",
-        count > 0 ? "查看購物車，共 " + count + " 件" : "查看購物車，目前是空的"
+        count > 0
+          ? L(
+              "查看購物車，共 " + count + " 件",
+              "View cart, " + count + (count === 1 ? " item" : " items")
+            )
+          : L("查看購物車，目前是空的", "View cart, currently empty")
       );
     }
 
@@ -577,11 +789,15 @@ const LingerApp = (function () {
         '<div class="cart-bar-inner">' +
         '<div class="cart-bar-info">' +
         '<span class="cart-bar-count">' +
-        count + " 項 · " + LingerUI.esc(LingerUI.fmtTable(state.table)) +
+        count +
+        LingerUI.esc(L(" 項 · ", count === 1 ? " item · " : " items · ")) +
+        LingerUI.esc(LingerUI.fmtTable(state.table)) +
         "</span>" +
         '<b class="cart-bar-total">' + LingerUI.money(LingerCart.subtotal()) + "</b>" +
         "</div>" +
-        '<button type="button" class="btn btn--primary" data-cart-open>查看購物車</button>' +
+        '<button type="button" class="btn btn--primary" data-cart-open>' +
+        LingerUI.esc(L("查看購物車", "View Cart")) +
+        "</button>" +
         "</div>";
     } else {
       els.cartBar.innerHTML = "";
@@ -633,19 +849,24 @@ const LingerApp = (function () {
     if (!entry) return;
 
     if (entry.item.price === null || entry.item.price === undefined) {
-      LingerUI.toast("此品項價格待定，請洽服務人員");
+      LingerUI.toast(
+        L("此品項價格待定，請洽服務人員", "Price to be confirmed — please ask our staff")
+      );
       return;
     }
 
     LingerCart.add(id, 1);
     syncCartUI();
 
-    LingerUI.toast("已加入購物車 · " + entry.item.zh, {
-      actionLabel: "查看",
-      onAction: function () {
-        go("cart");
-      },
-    });
+    LingerUI.toast(
+      L("已加入購物車 · ", "Added to cart · ") + L(entry.item.zh, entry.item.en),
+      {
+        actionLabel: L("查看", "View"),
+        onAction: function () {
+          go("cart");
+        },
+      }
+    );
   }
 
   /* -----------------------------------------------------------
@@ -662,24 +883,28 @@ const LingerApp = (function () {
     var item = entry.item;
     var category = entry.category;
     var max = LingerCart.maxQty();
+    var name = L(item.zh, item.en);
 
     return (
       '<div class="cart-item" data-cart-id="' + LingerUI.esc(item.id) + '">' +
       '<div class="cart-thumb">' + LingerUI.mediaHTML(item, category) + "</div>" +
       '<div class="cart-item-body">' +
       '<div class="cart-item-head">' +
-      '<span class="cart-item-name">' + LingerUI.esc(item.zh) + "</span>" +
-      '<span class="cart-item-name-en">' + LingerUI.esc(item.en) + "</span>" +
+      '<span class="cart-item-name">' + LingerUI.esc(name) + "</span>" +
       "</div>" +
       '<div class="cart-item-controls">' +
       '<div class="qty-stepper">' +
       '<button type="button" class="qty-btn" data-cart-minus="' + LingerUI.esc(item.id) + '" ' +
-      'aria-label="減少 ' + LingerUI.esc(item.zh) + ' 數量"' +
+      'aria-label="' +
+      LingerUI.esc(L("減少 " + name + " 數量", "Decrease " + name + " quantity")) +
+      '"' +
       (entry.qty <= 1 ? " disabled" : "") +
       ">" + LingerUI.icons.minus + "</button>" +
       '<span class="qty-value" aria-live="polite">' + entry.qty + "</span>" +
       '<button type="button" class="qty-btn" data-cart-plus="' + LingerUI.esc(item.id) + '" ' +
-      'aria-label="增加 ' + LingerUI.esc(item.zh) + ' 數量"' +
+      'aria-label="' +
+      LingerUI.esc(L("增加 " + name + " 數量", "Increase " + name + " quantity")) +
+      '"' +
       (entry.qty >= max ? " disabled" : "") +
       ">" + LingerUI.icons.plus + "</button>" +
       "</div>" +
@@ -687,7 +912,9 @@ const LingerApp = (function () {
       "</div>" +
       "</div>" +
       '<button type="button" class="cart-remove" data-cart-remove="' + LingerUI.esc(item.id) + '" ' +
-      'aria-label="移除 ' + LingerUI.esc(item.zh) + '">' +
+      'aria-label="' +
+      LingerUI.esc(L("移除 " + name, "Remove " + name)) +
+      '">' +
       LingerUI.icons.trash +
       "</button>" +
       "</div>"
@@ -697,14 +924,17 @@ const LingerApp = (function () {
   function cartSummaryHTML() {
     return (
       '<div class="cart-summary">' +
-      '<div class="sum-row"><span>小計 · Subtotal</span><b>' +
+      '<div class="sum-row"><span>' + LingerUI.esc(L("小計", "Subtotal")) + "</span><b>" +
       LingerUI.money(LingerCart.subtotal()) + "</b></div>" +
-      '<div class="sum-row sum-row--total"><span>總計 · Total</span><b>' +
+      '<div class="sum-row sum-row--total"><span>' +
+      LingerUI.esc(L("總計", "Total")) + "</span><b>" +
       LingerUI.money(LingerCart.total()) + "</b></div>" +
       "</div>" +
       '<div class="cart-actions">' +
-      '<button type="button" class="btn btn--ghost" data-go-menu>繼續點餐 · Add more</button>' +
-      '<button type="button" class="btn btn--primary" data-checkout>前往結帳 · ' +
+      '<button type="button" class="btn btn--ghost" data-go-menu>' +
+      LingerUI.esc(L("繼續點餐", "Add more")) + "</button>" +
+      '<button type="button" class="btn btn--primary" data-checkout>' +
+      LingerUI.esc(L("前往結帳", "Checkout")) + " · " +
       LingerUI.money(LingerCart.total()) + "</button>" +
       "</div>"
     );
@@ -715,9 +945,10 @@ const LingerApp = (function () {
     return (
       '<div class="page-head">' +
       '<p class="page-kicker">' +
-      (table ? "TABLE " + LingerUI.esc(table) + " · " : "") +
-      "YOUR ORDER</p>" +
-      '<h1 class="page-title">購物車</h1>' +
+      (table ? LingerUI.esc(L("桌號 " + table, "TABLE " + table)) + " · " : "") +
+      LingerUI.esc(L("您的點單", "YOUR ORDER")) +
+      "</p>" +
+      '<h1 class="page-title">' + LingerUI.esc(L("購物車", "Cart")) + "</h1>" +
       '<p class="page-sub">' + subtitle + "</p>" +
       "</div>"
     );
@@ -725,14 +956,24 @@ const LingerApp = (function () {
 
   function emptyCartHTML() {
     return (
-      cartHeadHTML("Cart · 0 項餐點") +
+      cartHeadHTML(LingerUI.esc(L("0 項餐點", "0 items"))) +
       '<div class="page-body">' +
       '<div class="empty-state">' +
       '<div class="empty-art">' + EMPTY_ART_SVG + "</div>" +
-      '<p class="empty-title">購物車還是空的</p>' +
-      '<p class="empty-sub">先挑幾道想吃的，讓這一餐慢慢開始。<br>' +
-      "Your cart is empty — take your time, choose something good.</p>" +
-      '<button type="button" class="btn btn--primary" data-go-menu>回到菜單 · View Menu</button>' +
+      '<p class="empty-title">' +
+      LingerUI.esc(L("購物車還是空的", "Your cart is empty")) +
+      "</p>" +
+      '<p class="empty-sub">' +
+      LingerUI.esc(
+        L(
+          "先挑幾道想吃的，讓這一餐慢慢開始。",
+          "Take your time — choose something good to begin."
+        )
+      ) +
+      "</p>" +
+      '<button type="button" class="btn btn--primary" data-go-menu>' +
+      LingerUI.esc(L("回到菜單", "View Menu")) +
+      "</button>" +
       "</div>" +
       "</div>"
     );
@@ -750,7 +991,14 @@ const LingerApp = (function () {
     }
 
     el.innerHTML =
-      cartHeadHTML("Cart · " + LingerCart.count() + " 項餐點") +
+      cartHeadHTML(
+        LingerUI.esc(
+          L(
+            LingerCart.count() + " 項餐點",
+            LingerCart.count() + (LingerCart.count() === 1 ? " item" : " items")
+          )
+        )
+      ) +
       '<div class="page-body">' +
       '<div class="cart-list">' +
       entries.map(cartItemHTML).join("") +
@@ -768,7 +1016,9 @@ const LingerApp = (function () {
       var next = LingerCart.qty(plusId) + 1;
 
       if (next > max) {
-        LingerUI.toast("單品最多 " + max + " 份");
+        LingerUI.toast(
+          L("單品最多 " + max + " 份", "Maximum " + max + " per item")
+        );
         return;
       }
 
@@ -803,13 +1053,16 @@ const LingerApp = (function () {
       syncCartUI(null);
 
       if (entry) {
-        LingerUI.toast("已移除 · " + entry.item.zh, {
-          actionLabel: "復原",
-          onAction: function () {
-            LingerCart.add(removeId, removedQty);
-            syncCartUI(null);
-          },
-        });
+        LingerUI.toast(
+          L("已移除 · ", "Removed · ") + L(entry.item.zh, entry.item.en),
+          {
+            actionLabel: L("復原", "Undo"),
+            onAction: function () {
+              LingerCart.add(removeId, removedQty);
+              syncCartUI(null);
+            },
+          }
+        );
       }
       return;
     }
@@ -827,10 +1080,13 @@ const LingerApp = (function () {
     return (
       '<div class="page-head">' +
       '<p class="page-kicker">' +
-      (table ? "TABLE " + LingerUI.esc(table) + " · " : "") +
-      "CHECKOUT</p>" +
-      '<h1 class="page-title">結帳</h1>' +
-      '<p class="page-sub">Checkout · 請確認餐點與桌號</p>' +
+      (table ? LingerUI.esc(L("桌號 " + table, "TABLE " + table)) + " · " : "") +
+      LingerUI.esc(L("確認訂單", "CHECKOUT")) +
+      "</p>" +
+      '<h1 class="page-title">' + LingerUI.esc(L("結帳", "Checkout")) + "</h1>" +
+      '<p class="page-sub">' +
+      LingerUI.esc(L("請確認餐點與桌號。", "Please confirm your dishes and table.")) +
+      "</p>" +
       "</div>"
     );
   }
@@ -838,7 +1094,8 @@ const LingerApp = (function () {
   function checkoutItemHTML(entry) {
     return (
       '<div class="checkout-item">' +
-      '<span class="checkout-item-name">' + LingerUI.esc(entry.item.zh) +
+      '<span class="checkout-item-name">' +
+      LingerUI.esc(L(entry.item.zh, entry.item.en)) +
       '<span class="checkout-item-qty">× ' + entry.qty + "</span></span>" +
       '<span class="checkout-item-price">' + LingerUI.money(entry.lineTotal) + "</span>" +
       "</div>"
@@ -851,10 +1108,20 @@ const LingerApp = (function () {
       '<div class="page-body">' +
       '<div class="empty-state">' +
       '<div class="empty-art">' + EMPTY_ART_SVG + "</div>" +
-      '<p class="empty-title">購物車還是空的</p>' +
-      '<p class="empty-sub">先挑幾道想吃的，再回來結帳。<br>' +
-      "Your cart is empty — choose something first.</p>" +
-      '<button type="button" class="btn btn--primary" data-go-menu>回到菜單 · View Menu</button>' +
+      '<p class="empty-title">' +
+      LingerUI.esc(L("購物車還是空的", "Your cart is empty")) +
+      "</p>" +
+      '<p class="empty-sub">' +
+      LingerUI.esc(
+        L(
+          "先挑幾道想吃的，再回來結帳。",
+          "Choose something first, then come back to checkout."
+        )
+      ) +
+      "</p>" +
+      '<button type="button" class="btn btn--primary" data-go-menu>' +
+      LingerUI.esc(L("回到菜單", "View Menu")) +
+      "</button>" +
       "</div>" +
       "</div>"
     );
@@ -877,39 +1144,58 @@ const LingerApp = (function () {
       checkoutHeadHTML() +
       '<div class="page-body">' +
       '<div class="checkout-table-row">' +
-      '<div>' +
-      '<span class="checkout-table-label">桌號 · Table</span>' +
+      "<div>" +
+      '<span class="checkout-table-label">' +
+      LingerUI.esc(L("桌號", "Table")) +
+      "</span>" +
       '<span class="checkout-table-value">' +
-      (table ? "Table " + LingerUI.esc(table) : "尚未設定") +
+      (table ? LingerUI.esc(table) : LingerUI.esc(L("尚未設定", "Not set"))) +
       "</span>" +
       "</div>" +
       '<button type="button" class="text-link" data-change-table>' +
-      (table ? "更換 · Change" : "設定桌號 · Set table") +
+      LingerUI.esc(table ? L("更換", "Change") : L("設定桌號", "Set table")) +
       "</button>" +
       "</div>" +
       '<div class="checkout-list">' +
       entries.map(checkoutItemHTML).join("") +
       "</div>" +
       '<label class="field note-field">' +
-      '<span class="field-label">備註 · Special requests</span>' +
+      '<span class="field-label">' +
+      LingerUI.esc(L("備註", "Special requests")) +
+      "</span>" +
       '<textarea class="field-textarea" id="checkout-note" maxlength="200" ' +
-      'placeholder="例如：不要辣、對花生過敏…">' +
+      'placeholder="' +
+      LingerUI.esc(L("例如：不要辣、對花生過敏…", "e.g. no chili, peanut allergy…")) +
+      '">' +
       LingerUI.esc(state.note) +
       "</textarea>" +
       "</label>" +
       '<div class="fee-table">' +
-      '<div class="sum-row"><span>小計 · Subtotal</span><b>' +
+      '<div class="sum-row"><span>' +
+      LingerUI.esc(L("小計", "Subtotal")) +
+      "</span><b>" +
       LingerUI.money(LingerCart.subtotal()) + "</b></div>" +
-      '<div class="sum-row sum-row--total"><span>總計 · Total</span><b>' +
+      '<div class="sum-row sum-row--total"><span>' +
+      LingerUI.esc(L("總計", "Total")) +
+      "</span><b>" +
       LingerUI.money(LingerCart.total()) + "</b></div>" +
       "</div>" +
       '<div class="cart-actions">' +
-      '<button type="button" class="btn btn--ghost" data-go-cart>返回購物車 · Edit cart</button>' +
-      '<button type="button" class="btn btn--primary" data-submit-order>送出訂單 · ' +
+      '<button type="button" class="btn btn--ghost" data-go-cart>' +
+      LingerUI.esc(L("返回購物車", "Edit cart")) +
+      "</button>" +
+      '<button type="button" class="btn btn--primary" data-submit-order>' +
+      LingerUI.esc(L("送出訂單", "Place Order")) + " · " +
       LingerUI.money(LingerCart.total()) + "</button>" +
       "</div>" +
-      '<p class="submit-note">送出後訂單將直接進入廚房，恕無法修改。<br>' +
-      "Once sent, your order goes straight to the kitchen.</p>" +
+      '<p class="submit-note">' +
+      LingerUI.esc(
+        L(
+          "送出後訂單將直接進入廚房，恕無法修改。",
+          "Once sent, your order goes straight to the kitchen and cannot be changed."
+        )
+      ) +
+      "</p>" +
       pageFootHTML() +
       "</div>";
   }
@@ -984,13 +1270,13 @@ const LingerApp = (function () {
     if (submitting) return;
 
     if (!LingerCart.count()) {
-      LingerUI.toast("購物車是空的 · Your cart is empty");
+      LingerUI.toast(L("購物車是空的", "Your cart is empty"));
       go("menu");
       return;
     }
 
     if (!LingerUI.normalizeTable(state.table)) {
-      LingerUI.toast("請先設定桌號 · Please set your table");
+      LingerUI.toast(L("請先設定桌號", "Please set your table first"));
       openTableModal();
       return;
     }
@@ -1001,7 +1287,9 @@ const LingerApp = (function () {
     submitting = true;
     if (submitBtn) submitBtn.disabled = true;
 
-    LingerUI.showSending("正在將訂單送往廚房…");
+    LingerUI.showSending(
+      L("正在將訂單送往廚房…", "Sending your order to the kitchen…")
+    );
 
     window.setTimeout(function () {
       try {
@@ -1047,7 +1335,8 @@ const LingerApp = (function () {
   function successItemHTML(line) {
     return (
       '<div class="checkout-item">' +
-      '<span class="checkout-item-name">' + LingerUI.esc(line.zh) +
+      '<span class="checkout-item-name">' +
+      LingerUI.esc(L(line.zh, line.en)) +
       '<span class="checkout-item-qty">× ' + LingerUI.esc(line.qty) + "</span></span>" +
       '<span class="checkout-item-price">' + LingerUI.money(line.lineTotal) + "</span>" +
       "</div>"
@@ -1057,10 +1346,18 @@ const LingerApp = (function () {
   function noOrderHTML() {
     return (
       '<div class="success-wrap">' +
-      '<p class="success-kicker">No Order</p>' +
-      '<h1 class="success-title" tabindex="-1">還沒有訂單</h1>' +
-      '<p class="success-sub">目前沒有可顯示的訂單。<br>No order to display right now.</p>' +
-      '<button type="button" class="btn btn--primary" data-go-menu>回到菜單 · View Menu</button>' +
+      '<p class="success-kicker">' +
+      LingerUI.esc(L("尚無訂單", "NO ORDER")) +
+      "</p>" +
+      '<h1 class="success-title" tabindex="-1">' +
+      LingerUI.esc(L("還沒有訂單", "No order yet")) +
+      "</h1>" +
+      '<p class="success-sub">' +
+      LingerUI.esc(L("目前沒有可顯示的訂單。", "There is no order to display right now.")) +
+      "</p>" +
+      '<button type="button" class="btn btn--primary" data-go-menu>' +
+      LingerUI.esc(L("回到菜單", "View Menu")) +
+      "</button>" +
       "</div>"
     );
   }
@@ -1077,7 +1374,7 @@ const LingerApp = (function () {
     }
 
     var noteHTML = order.note
-      ? "<br>備註 · Note：" + LingerUI.esc(order.note)
+      ? "<br>" + LingerUI.esc(L("備註：", "Note: ")) + LingerUI.esc(order.note)
       : "";
 
     el.innerHTML =
@@ -1086,14 +1383,30 @@ const LingerApp = (function () {
       '<circle class="check-circle" cx="38" cy="38" r="26.5"/>' +
       '<path class="check-mark" d="M25.5 39.5l8.5 8.5L51 30"/>' +
       "</svg>" +
-      '<p class="success-kicker">Order Received</p>' +
-      '<h1 class="success-title" tabindex="-1">餐點製作中</h1>' +
-      '<p class="success-sub">謝謝您的點餐，廚房已收到，請稍候片刻。<br>' +
-      "Thank you — our kitchen has received your order.</p>" +
+      '<p class="success-kicker">' +
+      LingerUI.esc(L("訂單已收到", "ORDER RECEIVED")) +
+      "</p>" +
+      '<h1 class="success-title" tabindex="-1">' +
+      LingerUI.esc(L("餐點製作中", "Your order is being prepared")) +
+      "</h1>" +
+      '<p class="success-sub">' +
+      LingerUI.esc(
+        L(
+          "謝謝您的點餐，廚房已收到，請稍候片刻。",
+          "Thank you — our kitchen has received your order."
+        )
+      ) +
+      "</p>" +
       '<div class="success-meta">' +
-      '<div><span class="success-meta-label">Order No.</span>' +
+      "<div>" +
+      '<span class="success-meta-label">' +
+      LingerUI.esc(L("訂單編號", "Order No.")) +
+      "</span>" +
       '<span class="success-meta-value">' + LingerUI.esc(order.no) + "</span></div>" +
-      '<div><span class="success-meta-label">Table</span>' +
+      "<div>" +
+      '<span class="success-meta-label">' +
+      LingerUI.esc(L("桌號", "Table")) +
+      "</span>" +
       '<span class="success-meta-value">' +
       LingerUI.esc(LingerUI.normalizeTable(order.table) || "—") +
       "</span></div>" +
@@ -1102,11 +1415,22 @@ const LingerApp = (function () {
       (order.items || []).map(successItemHTML).join("") +
       "</div>" +
       '<p class="success-note">' +
-      "<strong>總計 " + LingerUI.money(order.total) + "</strong>" +
+      "<strong>" +
+      LingerUI.esc(L("總計 ", "Total ")) +
+      LingerUI.money(order.total) +
+      "</strong>" +
       noteHTML +
-      "<br>餐點送出後恕無法修改，如需協助請告知服務人員。<br>" +
-      "Please speak to our staff if you need any assistance.</p>" +
-      '<button type="button" class="btn btn--primary" data-go-menu>回到菜單 · View Menu</button>' +
+      "<br>" +
+      LingerUI.esc(
+        L(
+          "餐點送出後恕無法修改，如需協助請告知服務人員。",
+          "Please speak to our staff if you need any assistance."
+        )
+      ) +
+      "</p>" +
+      '<button type="button" class="btn btn--primary" data-go-menu>' +
+      LingerUI.esc(L("回到菜單", "View Menu")) +
+      "</button>" +
       "</div>";
   }
 
@@ -1121,37 +1445,50 @@ const LingerApp = (function () {
     var category = entry.category;
     var qty = 1;
     var tbc = item.price === null || item.price === undefined;
+    var name = L(item.zh, item.en);
+    var story = L(item.story || "", item.storyEn || "");
+    var desc = L(item.descZh, item.descEn);
+    var ingredients = L(item.ingredients || [], item.ingredientsEn || []);
 
-    var storyHTML = item.story
-      ? '<blockquote class="modal-story">' +
-        LingerUI.esc(item.story) +
-        (item.storyEn
-          ? '<span class="modal-story-en">' + LingerUI.esc(item.storyEn) + "</span>"
-          : "") +
-        "</blockquote>"
+    var storyHTML = story
+      ? '<blockquote class="modal-story">' + LingerUI.esc(story) + "</blockquote>"
       : "";
 
     var allergenHTML =
       item.allergens && item.allergens.length
         ? LingerUI.allergenChips(item.allergens)
-        : '<span class="allergen-empty">未標示致敏原 · No listed allergens</span>';
+        : '<span class="allergen-empty">' +
+          LingerUI.esc(L("未標示致敏原", "No listed allergens")) +
+          "</span>";
 
     var footHTML = tbc
       ? '<div class="modal-foot">' +
-        '<p class="modal-tbc">此品項價格待定，請向服務人員查詢。<br>Price to be confirmed — please ask our staff.</p>' +
+        '<p class="modal-tbc">' +
+        LingerUI.esc(
+          L(
+            "此品項價格待定，請向服務人員查詢。",
+            "Price to be confirmed — please ask our staff."
+          )
+        ) +
+        "</p>" +
         "</div>"
       : '<div class="modal-foot">' +
         '<div class="qty-stepper">' +
-        '<button type="button" class="qty-btn" data-detail-minus aria-label="減少數量">' +
+        '<button type="button" class="qty-btn" data-detail-minus aria-label="' +
+        LingerUI.esc(L("減少數量", "Decrease quantity")) +
+        '">' +
         LingerUI.icons.minus +
         "</button>" +
         '<span class="qty-value" data-detail-qty aria-live="polite">1</span>' +
-        '<button type="button" class="qty-btn" data-detail-plus aria-label="增加數量">' +
+        '<button type="button" class="qty-btn" data-detail-plus aria-label="' +
+        LingerUI.esc(L("增加數量", "Increase quantity")) +
+        '">' +
         LingerUI.icons.plus +
         "</button>" +
         "</div>" +
         '<button type="button" class="btn btn--primary" data-detail-add>' +
-        "加入購物車 · " + LingerUI.money(item.price) +
+        LingerUI.esc(L("加入購物車", "Add to Cart")) + " · " +
+        LingerUI.money(item.price) +
         "</button>" +
         "</div>";
 
@@ -1159,23 +1496,31 @@ const LingerApp = (function () {
       '<div class="modal-scroll">' +
       '<div class="modal-media">' + LingerUI.mediaHTML(item, category, { lg: true }) + "</div>" +
       '<div class="modal-body">' +
-      '<p class="modal-kicker">' + LingerUI.esc(category.zh) + " · " + LingerUI.esc(category.en) + "</p>" +
-      '<h2 class="modal-title" id="detail-modal-title">' + LingerUI.esc(item.zh) + "</h2>" +
-      '<p class="modal-title-en">' + LingerUI.esc(item.en) + "</p>" +
+      '<p class="modal-kicker">' +
+      LingerUI.esc(L(category.zh, category.en)) +
+      "</p>" +
+      '<h2 class="modal-title" id="detail-modal-title">' +
+      LingerUI.esc(name) +
+      "</h2>" +
       '<p class="modal-price">' + LingerUI.money(item.price) + "</p>" +
       storyHTML +
-      '<p class="modal-desc">' + LingerUI.esc(item.descZh) + "</p>" +
-      (item.descEn
-        ? '<p class="modal-desc-en">' + LingerUI.esc(item.descEn) + "</p>"
-        : "") +
+      '<p class="modal-desc">' + LingerUI.esc(desc) + "</p>" +
       '<section class="modal-section">' +
-      '<h3 class="modal-section-title">配料 · Ingredients</h3>' +
-      '<ul class="chip-list">' + LingerUI.chipList(item.ingredients) + "</ul>" +
+      '<h3 class="modal-section-title">' +
+      LingerUI.esc(L("配料", "Ingredients")) +
+      "</h3>" +
+      '<ul class="chip-list">' + LingerUI.chipList(ingredients) + "</ul>" +
       "</section>" +
       '<section class="modal-section">' +
-      '<h3 class="modal-section-title">致敏原 · Allergens</h3>' +
+      '<h3 class="modal-section-title">' +
+      LingerUI.esc(L("致敏原", "Allergens")) +
+      "</h3>" +
       '<div class="allergen-row">' + allergenHTML + "</div>" +
-      '<p class="modal-desc">點擊代碼可查看 1–16 致敏原圖例。<br>Tap a code to view the full allergen guide.</p>' +
+      '<p class="modal-desc">' +
+      LingerUI.esc(
+        L("點擊代碼可查看 1–16 致敏原圖例。", "Tap a code to view the full allergen guide.")
+      ) +
+      "</p>" +
       "</section>" +
       "</div>" +
       "</div>" +
@@ -1199,7 +1544,8 @@ const LingerApp = (function () {
       if (minusBtn) minusBtn.disabled = qty <= 1;
       if (plusBtn) plusBtn.disabled = qty >= LingerCart.maxQty();
       if (addBtn) {
-        addBtn.textContent = "加入購物車 · " + LingerUI.money(item.price * qty);
+        addBtn.textContent =
+          L("加入購物車", "Add to Cart") + " · " + LingerUI.money(item.price * qty);
       }
     }
 
@@ -1215,7 +1561,12 @@ const LingerApp = (function () {
     if (plusBtn) {
       plusBtn.addEventListener("click", function () {
         if (qty >= LingerCart.maxQty()) {
-          LingerUI.toast("單品最多 " + LingerCart.maxQty() + " 份");
+          LingerUI.toast(
+            L(
+              "單品最多 " + LingerCart.maxQty() + " 份",
+              "Maximum " + LingerCart.maxQty() + " per item"
+            )
+          );
           return;
         }
         qty++;
@@ -1228,8 +1579,8 @@ const LingerApp = (function () {
         LingerCart.add(item.id, qty);
         syncCartUI();
         modal.close();
-        LingerUI.toast("已加入購物車 · " + item.zh, {
-          actionLabel: "查看",
+        LingerUI.toast(L("已加入購物車 · ", "Added to cart · ") + name, {
+          actionLabel: L("查看", "View"),
           onAction: function () {
             go("cart");
           },
@@ -1309,6 +1660,14 @@ const LingerApp = (function () {
      事件
      ----------------------------------------------------------- */
   function onDocumentClick(event) {
+    // 語言按鈕只認切換器內的 [data-lang]，避免其他帶同屬性的元素
+    // 被誤判成切換語言而吞掉點擊。
+    var langButton = event.target.closest(".lang-switch [data-lang]");
+    if (langButton) {
+      setLanguage(langButton.getAttribute("data-lang"));
+      return;
+    }
+
     var catButton = event.target.closest("[data-cat]");
     if (catButton) {
       setActiveCategory(catButton.getAttribute("data-cat"), event.detail === 0);
@@ -1428,6 +1787,8 @@ const LingerApp = (function () {
 
     var route = currentRoute() || "menu";
 
+    renderStaticTexts();
+    renderLangSwitch();
     renderBrand();
     renderFooter();
     updateTableChip();
@@ -1444,7 +1805,12 @@ const LingerApp = (function () {
 
     if (cartInit.dropped > 0) {
       LingerUI.toast(
-        "部分餐點已更新，已從購物車移除 " + cartInit.dropped + " 項"
+        L(
+          "部分餐點已更新，已從購物車移除 " + cartInit.dropped + " 項",
+          cartInit.dropped === 1
+            ? "Some items were updated; 1 item was removed from your cart."
+            : "Some items were updated; " + cartInit.dropped + " items were removed from your cart."
+        )
       );
     }
   }
