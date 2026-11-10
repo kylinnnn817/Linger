@@ -12,10 +12,14 @@
  *   items[].ingredients        配料（繁體中文字串陣列）
  *   items[].ingredientsEn      配料（英文字串陣列，英文版使用）
  *   items[].allergens          致敏原及飲食禁忌代碼陣列，對照下方 LINGER_ALLERGENS；沒有就 []
+ *   items[].options            選填，飲品選項開關，例如 { sweetness: true, ice: true }
  *   items[].story / storyEn    選填，詳情彈窗的故事段落
  *   items[].img                選填，照片路徑；留 "" 自動用水彩風佔位圖
+ *   items[].imgEn              選填，英文版照片路徑；英文介面優先使用
  *   items[].badge              選填，卡片角標 { zh, en }
  *   items[].hue                選填，覆寫分類色相
+ *
+ *   categories[].toppings      選填，該分類可加購的小料；每項 { id, zh, en, price }
  *
  * 【換照片】
  *   1. 圖放進 linger-menu/img/，檔名用菜的 id（小寫英文，勿用中文）
@@ -25,7 +29,7 @@
  * 【注意】
  *   - id 上線後不可改：購物車與佔位圖配色都靠它；刪除菜色會自動從顧客購物車剔除。
  *   - 致敏原代碼依 2026-11-09 官方代碼表，並按配料逐項核對。
- *   - 目前 51 道菜皆已定價；日後新增未定價品項仍可填 null，
+ *   - 目前 54 道菜皆已定價；日後新增未定價品項仍可填 null，
  *     前台會顯示「價格待定」並暫停加入購物車。
  *   - 檔案請保持 UTF-8（無 BOM）編碼。
  * ============================================================= */
@@ -51,7 +55,7 @@ const LINGER_ALLERGENS = {
 };
 
 const LINGER_MENU = {
-  version: "2026-11-09b",  // 每次修改菜單順手更新
+  version: "2026-11-10a",  // 每次修改菜單順手更新
   serviceCharge: 0,       // 本店不收取服務費（日後如需加收，改為 0.10）
   currency: "MOP",
 
@@ -71,6 +75,23 @@ const LINGER_MENU = {
     allergyEn: "Please note the allergen and dietary codes beside each dish. Due to limited kitchen space and equipment, we cannot guarantee complete avoidance of cross-contact. Please assess the risk yourself and choose whether to eat the dish.",
   },
 
+  /* 飲品選項：只有 item.options 開啟對應項目的飲品才顯示 */
+  drinkOptions: {
+    defaults: { sweetness: "full", ice: "normal" },
+    sweetness: [
+      { id: "full", zh: "全糖", en: "Full Sugar" },
+      { id: "half", zh: "半糖", en: "Half Sugar" },
+      { id: "none", zh: "無糖", en: "No Sugar" },
+    ],
+    ice: [
+      { id: "normal", zh: "正常冰", en: "Normal Ice" },
+      { id: "less", zh: "少冰", en: "Less Ice" },
+      { id: "none", zh: "去冰", en: "No Ice" },
+      { id: "warm", zh: "溫", en: "Warm" },
+      { id: "hot", zh: "熱", en: "Hot" },
+    ],
+  },
+
   categories: [
     /* ================= 主菜 Main Dishes ================= */
     {
@@ -83,7 +104,7 @@ const LINGER_MENU = {
           id: "sanbeiji",
           zh: "杯酒三巡",
           en: "Three-Cup Chicken",
-          price: 68,
+          price: 78,
           descZh: "麻油、醬油與米酒在砂鍋裡收成一層濃亮的甘，九層塔最後落下，香氣像一句沒說完的話。",
           descEn: "Sesame oil, soy and rice wine reduced to a glossy sweetness; basil falls in last, like a sentence left unfinished.",
           ingredients: ["雞腿肉", "九層塔", "老薑", "蒜頭", "辣椒", "黑麻油", "醬油膏", "米酒", "冰糖"],
@@ -99,7 +120,7 @@ const LINGER_MENU = {
           id: "basil-clams",
           zh: "九層塔與小海蛤",
           en: "Basil Clams",
-          price: 58,
+          price: 88,
           descZh: "蛤蜊在熱鍋裡一一開口，像把海的話說完；九層塔的香氣把整盤風收進廚房。",
           descEn: "Clams open one by one in the wok, finishing the sea's sentence; basil gathers the salt wind indoors.",
           ingredients: ["蛤蜊", "九層塔", "蒜瓣", "紅辣椒", "薑絲", "米酒", "醬油", "糖"],
@@ -126,7 +147,7 @@ const LINGER_MENU = {
           id: "sesame-oil-chicken",
           zh: "暖暖麻油香",
           en: "Sesame Oil Chicken",
-          price: 68,
+          price: 88,
           descZh: "老薑在麻油裡慢慢煸出暖意，米酒與雞肉燉成一鍋冬夜的安慰，喝一口，手腳都回來了。",
           descEn: "Old ginger slowly releases its warmth into sesame oil; rice wine and chicken simmer into a winter night's comfort.",
           ingredients: ["土雞", "老薑", "黑麻油", "米酒", "當歸", "香菇", "枸杞", "鹽"],
@@ -164,6 +185,64 @@ const LINGER_MENU = {
       ],
     },
 
+    /* ================= 套餐 Set Meals ================= */
+    {
+      id: "sets",
+      zh: "套餐",
+      en: "Set Meals",
+      hue: 24,
+      items: [
+        {
+          id: "set-solo",
+          zh: "單人套餐",
+          en: "Daily Solo Meal Set",
+          price: 78,
+          descZh: "一個人的餐桌，也能擺滿臺灣的日常：廟口滷肉飯的醬香、阿嬤薑糖番茄的酸甜，最後以一杯琥珀冬瓜茶收尾。",
+          descEn: "A complete Taiwanese table for one: the savoury depth of temple-market braised pork rice, sweet-tart ginger tomatoes, and a cool amber winter melon tea to finish.",
+          ingredients: ["廟口滷肉飯", "阿嬤薑糖番茄", "琥珀冬瓜茶"],
+          ingredientsEn: ["Temple Market Braised Pork Rice", "Grandma's Ginger-Sugar Tomatoes", "Amber Winter Melon Tea"],
+          allergens: [1, 8, 16],
+          story: "一個人吃飯不是將就，是把喜歡的三樣，剛剛好放在一張桌上。",
+          storyEn: "Eating alone is not a compromise; it is putting three things you love, just so, on one table.",
+          img: "img/set-solo.jpg",
+          imgEn: "img/set-solo-en.jpg",
+          hue: 32,
+        },
+        {
+          id: "set-full-meal",
+          zh: "正餐套餐",
+          en: "Full Meal Set",
+          price: 135,
+          descZh: "三杯雞的麻油與九層塔、美濃水蓮的清翠、一碗熱白飯，最後由正港珍珠奶茶把飽足收成一點甜。",
+          descEn: "Three-cup chicken with sesame oil and basil, crisp Meinong water lotus, a bowl of warm rice, and an authentic Taichung pearl milk tea to finish on a sweet note.",
+          ingredients: ["杯酒三巡", "美濃翠水蓮", "白米飯", "正港珍珠奶茶"],
+          ingredientsEn: ["Three-Cup Chicken", "Meinong Water Lotus Stir-Fry", "Steamed Rice", "Authentic Taichung Pearl Milk Tea"],
+          allergens: [1, 6, 8, 9],
+          story: "一頓正餐，要有熱、有青菜、有飯，還有一杯飯後才捨得喝完的珍奶。",
+          storyEn: "A proper meal needs something hot, something green, a bowl of rice — and a pearl milk tea saved for the last sip.",
+          img: "img/set-full-meal.jpg",
+          imgEn: "img/set-full-meal-en.jpg",
+          hue: 24,
+        },
+        {
+          id: "set-gathering",
+          zh: "聚會套餐",
+          en: "Double Gathering Set",
+          price: 198,
+          descZh: "一桌適合分享的臺灣夜晚：暖暖麻油香、韭菜花的下酒事、糯米炊香與眷村牛肉麵，讓話語在熱氣裡慢慢變多。",
+          descEn: "A Taiwanese evening made for sharing: sesame oil chicken, chive-flower stir-fry, Tainan sticky rice and military-village beef noodles — conversation grows with the steam.",
+          ingredients: ["暖暖麻油香", "韭菜花的下酒事", "糯米炊香（臺南米糕）", "眷村牛肉麵"],
+          ingredientsEn: ["Sesame Oil Chicken", "Fly's Head Stir-Fry", "Tainan Sticky Rice", "Military Village Taiwanese Braised Beef Noodles"],
+          allergens: [1, 4, 5, 8, 9, 15, 16],
+          story: "聚會不必盛大，四道菜、幾雙筷子，一鍋湯還冒著煙，就是最好的夜晚。",
+          storyEn: "A gathering need not be grand — four dishes, a few pairs of chopsticks, and a pot still steaming make the best kind of night.",
+          img: "img/set-gathering.jpg",
+          imgEn: "img/set-gathering-en.jpg",
+          hue: 18,
+        },
+      ],
+    },
+
     /* ================= 主食 Staples ================= */
     {
       id: "staples",
@@ -175,7 +254,7 @@ const LINGER_MENU = {
           id: "lurou-fan",
           zh: "廟口滷肉飯",
           en: "Temple Market Braised Pork Rice",
-          price: 38,
+          price: 40,
           descZh: "肥瘦相間的五花在滷汁裡熬成一種耐心，白飯淋上醬色，廟口的燈就亮了。",
           descEn: "Fat and lean pork simmered into patience, poured over warm rice — the temple lights come on.",
           ingredients: ["帶皮五花肉", "紅蔥酥", "乾香菇", "醬油", "醬油膏", "冰糖", "米酒", "五香粉", "白胡椒粉", "高湯", "白飯"],
@@ -189,7 +268,7 @@ const LINGER_MENU = {
           id: "bonito-intestine",
           zh: "柴魚紅麵線（大腸）",
           en: "Bonito Noodle Soup with Pork Intestine",
-          price: 58,
+          price: 68,
           descZh: "紅麵線在柴魚高湯裡勾出一層溫柔的稠，滷得入味的豬大腸、蒜泥與烏醋，是廟口清晨的味道。",
           descEn: "Red noodles thickened gently in bonito broth, with braised pork intestine, garlic and black vinegar — a temple-morning taste.",
           ingredients: ["紅麵線", "柴魚", "豬大腸", "蒜泥", "香菜", "烏醋", "太白粉水"],
@@ -202,7 +281,7 @@ const LINGER_MENU = {
           id: "tainan-sticky-rice",
           zh: "糯米炊香（臺南米糕）",
           en: "Tainan Sticky Rice",
-          price: 32,
+          price: 38,
           descZh: "長糯米炊得粒粒分明，肉燥、魚鬆與花生層層鋪上，蒸氣裡有臺南街巷的黃昏。",
           descEn: "Long-grain sticky rice steamed grain by grain, layered with pork sauce, fish floss and peanuts — a Tainan alley at dusk.",
           ingredients: ["長糯米", "肉燥", "魚鬆", "熟花生", "醃小黃瓜", "香菜", "紅蔥酥"],
@@ -229,7 +308,7 @@ const LINGER_MENU = {
           id: "danzai-noodles",
           zh: "古早擔仔麵",
           en: "Traditional Danzai Noodles",
-          price: 38,
+          price: 45,
           descZh: "一小碗油麵，淋上肉燥與蝦頭高湯，鮮蝦、豆芽與香菜點亮湯面，分量不大，卻很念舊。",
           descEn: "A small bowl of oil noodles with pork sauce and shrimp-head broth, brightened by prawns, bean sprouts and coriander — modest, nostalgic.",
           ingredients: ["油麵", "豬後腿肉燥", "蝦頭高湯", "鮮蝦", "豆芽菜", "香菜", "蒜泥", "烏醋"],
@@ -242,7 +321,7 @@ const LINGER_MENU = {
           id: "oyster-omelette",
           zh: "鹿港蚵仔煎",
           en: "Lukang Oyster Omelette",
-          price: 38,
+          price: 58,
           descZh: "鮮蚵與雞蛋在粉漿裡煎出邊緣的焦香，小白菜的清甜與海山醬的鹹甜，是鹿港廟口的熱鬧。",
           descEn: "Fresh oysters and egg crisped at the edges in a sweet-potato batter; bok choy and sea-mountain sauce — the bustle of Lukang's temple square.",
           ingredients: ["鮮蚵", "雞蛋", "地瓜粉", "太白粉", "小白菜", "蔥花", "海山醬"],
@@ -353,7 +432,7 @@ const LINGER_MENU = {
           id: "coffin-bread",
           zh: "官財板",
           en: "Tainan Coffin Bread",
-          price: 48,
+          price: 58,
           descZh: "厚片吐司炸得金黃，掀開蓋子，裡頭是奶油白醬與海鮮的溫柔秘密；名字嚇人，滋味卻很疼人。",
           descEn: "Golden-fried thick toast lifts its lid to reveal a gentle secret of cream sauce and seafood — a fearsome name, a tender taste.",
           ingredients: ["厚片吐司", "雞肉", "豬肝片", "蝦仁", "豌豆", "胡蘿蔔", "馬鈴薯", "墨魚", "洋蔥", "牛奶", "奶油白醬"],
@@ -366,7 +445,7 @@ const LINGER_MENU = {
           id: "popcorn-chicken",
           zh: "九層塔鹽酥雞",
           en: "Basil Popcorn Chicken",
-          price: 30,
+          price: 40,
           descZh: "地瓜粉裹住雞肉的鮮嫩，九層塔與蒜香在油鍋裡炸開，是夜市最溫柔的擁抱。",
           descEn: "Sweet potato starch seals in tenderness; basil and garlic bloom in hot oil — the night market's warmest hug.",
           ingredients: ["帶骨雞胸肉", "地瓜粉", "麵粉", "九層塔", "蒜末", "椒鹽", "辣椒粉"],
@@ -393,7 +472,7 @@ const LINGER_MENU = {
           id: "sausage-sticky-rice",
           zh: "臺式小腸包（大腸包小腸）",
           en: "Taiwanese Sausage Wrapped in Sticky Rice Sausage",
-          price: 42,
+          price: 35,
           descZh: "糯米腸切開，夾進炭香四溢的臺式香腸，黃瓜、花生碎與酸菜把油香平衡得剛好。",
           descEn: "A sticky rice sausage split open for a charcoal-kissed Taiwanese sausage, balanced by cucumber, crushed peanuts and pickles.",
           ingredients: ["糯米腸", "臺式香腸", "小黃瓜", "花生碎", "蘿蔔乾", "香菜", "大蒜", "酸菜", "醬油膏", "甜辣醬"],
@@ -433,7 +512,7 @@ const LINGER_MENU = {
           id: "fried-platter",
           zh: "臺式炸物拼盤",
           en: "Taiwanese Fried Platter",
-          price: 48,
+          price: 68,
           descZh: "甜不辣、花枝丸、芋頭糕、米血糕與地瓜條，一盤裝下夜市的熱鬧，配甜辣醬最好。",
           descEn: "Tempura, cuttlefish balls, taro cake, rice-blood cake and sweet potato fries — a night market on one plate, best with sweet chili sauce.",
           ingredients: ["甜不辣", "花枝丸", "芋頭糕", "米血糕", "地瓜條", "炸香腸", "甜辣醬"],
@@ -446,7 +525,7 @@ const LINGER_MENU = {
           id: "braised-platter",
           zh: "老滷五味集",
           en: "Five-Flavour Braised Platter",
-          price: 58,
+          price: 68,
           descZh: "牛腱、豬腸、海帶、蘿蔔與豆乾在老滷裡慢慢入味，五種口感，一種濃郁。",
           descEn: "Beef shank, pork intestine, kelp, radish and dried tofu steeped in an old braise — five textures, one deep flavour.",
           ingredients: ["牛腱", "豬大腸", "海帶", "白蘿蔔", "豆乾", "滷汁（醬油、冰糖、八角、五香粉、蒜頭、薑片、辣椒）"],
@@ -465,12 +544,21 @@ const LINGER_MENU = {
       zh: "甜品冰品",
       en: "Desserts & Shaved Ice",
       hue: 332,
+      toppings: [
+        { id: "aiyu", zh: "愛玉", en: "Aiyu Jelly", price: 6 },
+        { id: "fenkuo", zh: "粉粿", en: "Fenkuo (Rice Cake)", price: 6 },
+        { id: "red-beans", zh: "蜜紅豆", en: "Sweet Red Beans", price: 6 },
+        { id: "mochi", zh: "麻糬", en: "Mochi", price: 8 },
+        { id: "peanuts", zh: "花生碎", en: "Crushed Peanuts", price: 4 },
+        { id: "tapioca", zh: "木薯", en: "Tapioca", price: 6 },
+        { id: "pudding", zh: "布丁", en: "Tapioca Pudding", price: 10 },
+      ],
       items: [
         {
           id: "tofu-pudding",
           zh: "滿貫豆花",
           en: "Full House Tofu Pudding",
-          price: 28,
+          price: 38,
           descZh: "豆花嫩得幾乎留不住自己，黑糖水、粉圓、芋圓與蜜豆在碗底靜靜等待被發現。",
           descEn: "Tofu pudding so tender it barely holds itself; brown sugar syrup, pearls, taro balls and sweet beans waiting quietly at the bottom.",
           ingredients: ["黃豆", "石膏粉", "黑糖水", "花生", "紅豆", "綠豆", "粉圓", "芋圓"],
@@ -499,7 +587,7 @@ const LINGER_MENU = {
           id: "creamy-red-snow",
           zh: "奶霜紅豆雪",
           en: "Creamy Red Snow",
-          price: 38,
+          price: 48,
           descZh: "清冰像冬夜裡的一場小雪，布丁、蜜紅豆與煉乳落下來，甜得很輕，涼得很慢。",
           descEn: "Shaved ice falls like a light winter; pudding, sweet red beans and condensed milk settle gently — sweetly, slowly.",
           ingredients: ["清冰", "布丁", "蜜紅豆", "煉乳"],
@@ -512,7 +600,7 @@ const LINGER_MENU = {
           id: "yanchao-guava-pomelo",
           zh: "燕巢芭樂柚香",
           en: "Yanchao Guava Pomelo Aroma",
-          price: 52,
+          price: 68,
           descZh: "燕巢芭樂的清甜、文旦柚子的微酸與蜂蜜柚子醬，落在細白的雪花冰上；季節很短，這碗很亮。",
           descEn: "The sweetness of Yanchao guava, the gentle tartness of pomelo and honey pomelo jam over fine snow ice — a short season, a bright bowl.",
           ingredients: ["雪花冰", "燕巢芭樂", "文旦柚子果肉", "蜂蜜柚子醬", "煉乳（可選）", "檸檬汁", "梅粉（可選）"],
@@ -528,7 +616,7 @@ const LINGER_MENU = {
           id: "mesona-mist",
           zh: "黑糖仙草霧",
           en: "Brown Sugar Mesona Mist",
-          price: 42,
+          price: 52,
           descZh: "仙草的微苦被黑糖溫柔地包住，粉粿、珍珠與三色圓在冰霧裡若隱若現。",
           descEn: "The gentle bitterness of mesona wrapped in brown sugar; rice cake, pearls and tri-colour balls surface through the icy mist.",
           ingredients: ["清冰", "仙草", "黑糖粉粿", "珍珠", "三色圓", "糖水"],
@@ -541,7 +629,7 @@ const LINGER_MENU = {
           id: "taro-dew",
           zh: "三重芋香露",
           en: "Triple Taro Dew",
-          price: 42,
+          price: 48,
           descZh: "芋泥、蜜芋頭與芋圓三種芋香層層堆疊，煉乳把它們黏成一首濃稠的甜詩。",
           descEn: "Taro paste, honeyed taro and taro balls layered three ways, bound by condensed milk into a thick sweet poem.",
           ingredients: ["清冰", "芋泥", "蜜芋頭", "芋圓", "煉乳"],
@@ -566,6 +654,7 @@ const LINGER_MENU = {
           zh: "正港珍珠奶茶",
           en: "Authentic Taichung Pearl Milk Tea",
           price: 30,
+          options: { sweetness: true, ice: true },
           descZh: "紅茶與鮮奶的比例剛剛好，珍珠在杯底沉著，吸管一攪，整杯臺中就醒了。",
           descEn: "Black tea and fresh milk in just the right measure; pearls waiting at the bottom — one stir and Taichung wakes up.",
           ingredients: ["紅茶", "鮮奶", "珍珠", "蔗糖"],
@@ -579,7 +668,8 @@ const LINGER_MENU = {
           id: "papaya-milk",
           zh: "木瓜牛奶",
           en: "Papaya Milk",
-          price: 28,
+          price: 38,
+          options: { sweetness: true, ice: true },
           descZh: "熟成木瓜與鮮奶打成濃稠的橘，甜得自然，是臺灣冰果室裡最經典的一杯。",
           descEn: "Ripe papaya blended thick with fresh milk — naturally sweet, the classic glass of a Taiwanese juice bar.",
           ingredients: ["木瓜", "鮮奶", "砂糖", "冰塊"],
@@ -593,6 +683,7 @@ const LINGER_MENU = {
           zh: "琥珀冬瓜茶",
           en: "Amber Winter Melon Tea",
           price: 18,
+          options: { sweetness: true, ice: true },
           descZh: "冬瓜與黑糖慢熬成琥珀色，甜而不膩，冰涼地滑過喉嚨，像夏天午後的一陣風。",
           descEn: "Winter melon and brown sugar slow-cooked to amber — sweet without heaviness, gliding coolly like a summer afternoon breeze.",
           ingredients: ["冬瓜", "黑糖", "水"],
@@ -725,7 +816,7 @@ const LINGER_MENU = {
           id: "lanyang-plain",
           zh: "蘭陽平原",
           en: "Lanyang Plain",
-          price: 368,
+          price: 138,
           sub: "taipei",
           descZh: "琥珀色的酒液裡，柑橘與山椒的清香慢慢展開，像宜蘭平原上吹過的一陣晚風；適合慢慢喝。",
           descEn: "Citrus and mountain pepper unfold slowly in an amber pour — an evening breeze across the Lanyang Plain, made to be lingered over.",

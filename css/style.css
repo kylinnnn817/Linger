@@ -1183,6 +1183,13 @@ html.modal-open {
   color: var(--ink-faint);
 }
 
+.cart-item-options {
+  margin: -1px 0 2px;
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: var(--ochre-deep);
+}
+
 .cart-item-controls {
   display: flex;
   align-items: center;
@@ -1377,6 +1384,16 @@ html.modal-open {
   color: var(--ink-faint);
   font-size: 12px;
   margin-left: 6px;
+}
+
+.checkout-item-options {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  line-height: 1.6;
+  letter-spacing: 0;
+  color: var(--ochre-deep);
 }
 
 .checkout-item-price {
@@ -1778,6 +1795,112 @@ html.modal-open {
   text-transform: uppercase;
   color: var(--ink-faint);
   margin-bottom: 9px;
+}
+
+/* 小料／甜度／冰度 */
+.modal-section--options {
+  padding-top: 2px;
+}
+
+.modal-option-note {
+  margin: -2px 0 10px;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--ink-faint);
+}
+
+.modal-option-label {
+  margin: 14px 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.modal-option-label:first-of-type {
+  margin-top: 0;
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.option-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.option-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: left;
+  transition: border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.option-pill:hover {
+  border-color: var(--ochre);
+  color: var(--ochre-deep);
+}
+
+.option-pill.is-selected,
+.option-pill[aria-pressed="true"] {
+  border-color: var(--ochre);
+  background: rgba(176, 84, 59, 0.08);
+  color: var(--ochre-deep);
+  box-shadow: inset 0 0 0 1px rgba(176, 84, 59, 0.16);
+}
+
+.option-pill-label {
+  min-width: 0;
+}
+
+.option-pill-price {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.option-pill.is-selected .option-pill-price,
+.option-pill[aria-pressed="true"] .option-pill-price {
+  color: var(--ochre-deep);
+}
+
+.option-pill--choice {
+  justify-content: center;
+  min-width: 60px;
+  min-height: 40px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  text-align: center;
+}
+
+.modal-option-summary {
+  margin: 12px 0 0;
+  padding: 8px 11px;
+  border-radius: var(--radius-s);
+  background: var(--paper-2);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--ochre-deep);
+}
+
+.modal-option-summary[hidden] {
+  display: none;
 }
 
 .chip-list {
@@ -2296,6 +2419,10 @@ html.modal-open {
 
   .modal-foot {
     padding-bottom: 16px;
+  }
+
+  .option-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
 }

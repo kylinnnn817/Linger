@@ -161,10 +161,15 @@ const LingerUI = (function () {
   }
 
   function mediaHTML(item, category, opts) {
-    if (item && item.img) {
+    var image = "";
+    if (item) {
+      image =
+        LingerI18n.get() === "en" && item.imgEn ? item.imgEn : item.img;
+    }
+    if (image) {
       return (
         '<img src="' +
-        esc(item.img) +
+        esc(image) +
         '" alt="' +
         esc(L(item.zh, item.en)) +
         '" loading="lazy" decoding="async">'

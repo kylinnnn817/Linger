@@ -27,6 +27,82 @@ const LingerApp = (function () {
   }
 
   /* -----------------------------------------------------------
+     飲品／甜品選項文字
+     ----------------------------------------------------------- */
+  function drinkConfig() {
+    return LINGER_MENU.drinkOptions || {};
+  }
+
+  function choiceList(group) {
+    var config = drinkConfig();
+    return Array.isArray(config[group]) ? config[group] : [];
+  }
+
+  function findChoice(group, id) {
+    var choices = choiceList(group);
+    for (var i = 0; i < choices.length; i++) {
+      if (choices[i].id === id) return choices[i];
+    }
+    return null;
+  }
+
+  function choiceLabel(group, id, lang) {
+    var choice = findChoice(group, id);
+    if (!choice) return "";
+    return lang === "en" ? choice.en : choice.zh;
+  }
+
+  function defaultChoice(group) {
+    var defaults = drinkConfig().defaults || {};
+    var wanted = defaults[group];
+    if (findChoice(group, wanted)) return wanted;
+    var choices = choiceList(group);
+    return choices.length ? choices[0].id : "";
+  }
+
+  function itemSupports(item, group) {
+    return !!(item && item.options && item.options[group]);
+  }
+
+  function categoryToppings(category) {
+    return category && Array.isArray(category.toppings) ? category.toppings : [];
+  }
+
+  function hasCustomOptions(entry) {
+    return (
+      categoryToppings(entry.category).length > 0 ||
+      itemSupports(entry.item, "sweetness") ||
+      itemSupports(entry.item, "ice")
+    );
+  }
+
+  function optionText(entry, lang) {
+    if (!entry || !entry.options) return "";
+
+    var isEn = lang === "en";
+    var parts = [];
+
+    if (entry.options.sweetness) {
+      parts.push(choiceLabel("sweetness", entry.options.sweetness, lang));
+    }
+    if (entry.options.ice) {
+      parts.push(choiceLabel("ice", entry.options.ice, lang));
+    }
+    if (entry.toppingItems && entry.toppingItems.length) {
+      var names = entry.toppingItems.map(function (topping) {
+        return isEn ? topping.en : topping.zh;
+      });
+      parts.push((isEn ? "Add " : "加") + names.join(isEn ? ", " : "、"));
+    }
+
+    return parts.filter(Boolean).join(" · ");
+  }
+
+  function entryOptionText(entry) {
+    return optionText(entry, LingerI18n.get());
+  }
+
+  /* -----------------------------------------------------------
      常數 / 儲存
      ----------------------------------------------------------- */
   var KEYS = {
@@ -680,11 +756,15 @@ const LingerApp = (function () {
         "</span>"
       : "";
     var tbc = item.price === null || item.price === undefined;
+    var custom = hasCustomOptions({ item: item, category: category });
+    var addLabel = custom
+      ? L("選擇選項：", "Choose options: ")
+      : L("加入購物車：", "Add to cart: ");
     var actionHTML = tbc
       ? '<span class="card-tbc">' + LingerUI.esc(L("洽詢", "Ask staff")) + "</span>"
       : '<button type="button" class="card-add" data-add="' + LingerUI.esc(item.id) + '" ' +
         'aria-label="' +
-        LingerUI.esc(L("加入購物車：", "Add to cart: ") + name) +
+        LingerUI.esc(addLabel + name) +
         '">' +
         LingerUI.icons.plus +
         "</button>";
@@ -855,6 +935,12 @@ const LingerApp = (function () {
       return;
     }
 
+    // 有甜度／冰度或小料可選的品項，先打開詳情讓顧客選擇。
+    if (hasCustomOptions(entry)) {
+      openDetail(id);
+      return;
+    }
+
     LingerCart.add(id, 1);
     syncCartUI();
 
@@ -884,26 +970,32 @@ const LingerApp = (function () {
     var category = entry.category;
     var max = LingerCart.maxQty();
     var name = L(item.zh, item.en);
+    var optionsText = entryOptionText(entry);
+    var ariaName = optionsText ? name + " · " + optionsText : name;
+    var key = entry.key;
 
     return (
-      '<div class="cart-item" data-cart-id="' + LingerUI.esc(item.id) + '">' +
+      '<div class="cart-item" data-cart-id="' + LingerUI.esc(key) + '">' +
       '<div class="cart-thumb">' + LingerUI.mediaHTML(item, category) + "</div>" +
       '<div class="cart-item-body">' +
       '<div class="cart-item-head">' +
       '<span class="cart-item-name">' + LingerUI.esc(name) + "</span>" +
       "</div>" +
+      (optionsText
+        ? '<p class="cart-item-options">' + LingerUI.esc(optionsText) + "</p>"
+        : "") +
       '<div class="cart-item-controls">' +
       '<div class="qty-stepper">' +
-      '<button type="button" class="qty-btn" data-cart-minus="' + LingerUI.esc(item.id) + '" ' +
+      '<button type="button" class="qty-btn" data-cart-minus="' + LingerUI.esc(key) + '" ' +
       'aria-label="' +
-      LingerUI.esc(L("減少 " + name + " 數量", "Decrease " + name + " quantity")) +
+      LingerUI.esc(L("減少 " + ariaName + " 數量", "Decrease " + ariaName + " quantity")) +
       '"' +
       (entry.qty <= 1 ? " disabled" : "") +
       ">" + LingerUI.icons.minus + "</button>" +
       '<span class="qty-value" aria-live="polite">' + entry.qty + "</span>" +
-      '<button type="button" class="qty-btn" data-cart-plus="' + LingerUI.esc(item.id) + '" ' +
+      '<button type="button" class="qty-btn" data-cart-plus="' + LingerUI.esc(key) + '" ' +
       'aria-label="' +
-      LingerUI.esc(L("增加 " + name + " 數量", "Increase " + name + " quantity")) +
+      LingerUI.esc(L("增加 " + ariaName + " 數量", "Increase " + ariaName + " quantity")) +
       '"' +
       (entry.qty >= max ? " disabled" : "") +
       ">" + LingerUI.icons.plus + "</button>" +
@@ -911,9 +1003,9 @@ const LingerApp = (function () {
       '<span class="cart-line-price">' + LingerUI.money(entry.lineTotal) + "</span>" +
       "</div>" +
       "</div>" +
-      '<button type="button" class="cart-remove" data-cart-remove="' + LingerUI.esc(item.id) + '" ' +
+      '<button type="button" class="cart-remove" data-cart-remove="' + LingerUI.esc(key) + '" ' +
       'aria-label="' +
-      LingerUI.esc(L("移除 " + name, "Remove " + name)) +
+      LingerUI.esc(L("移除 " + ariaName, "Remove " + ariaName)) +
       '">' +
       LingerUI.icons.trash +
       "</button>" +
@@ -1053,12 +1145,16 @@ const LingerApp = (function () {
       syncCartUI(null);
 
       if (entry) {
+        var removedName = L(entry.item.zh, entry.item.en);
+        var removedOptions = entryOptionText(entry);
+        if (removedOptions) removedName += " · " + removedOptions;
+
         LingerUI.toast(
-          L("已移除 · ", "Removed · ") + L(entry.item.zh, entry.item.en),
+          L("已移除 · ", "Removed · ") + removedName,
           {
             actionLabel: L("復原", "Undo"),
             onAction: function () {
-              LingerCart.add(removeId, removedQty);
+              LingerCart.add(entry.item.id, removedQty, entry.options);
               syncCartUI(null);
             },
           }
@@ -1092,11 +1188,19 @@ const LingerApp = (function () {
   }
 
   function checkoutItemHTML(entry) {
+    var optionsText = entryOptionText(entry);
+
     return (
       '<div class="checkout-item">' +
       '<span class="checkout-item-name">' +
       LingerUI.esc(L(entry.item.zh, entry.item.en)) +
-      '<span class="checkout-item-qty">× ' + entry.qty + "</span></span>" +
+      '<span class="checkout-item-qty">× ' + entry.qty + "</span>" +
+      (optionsText
+        ? '<span class="checkout-item-options">' +
+          LingerUI.esc(optionsText) +
+          "</span>"
+        : "") +
+      "</span>" +
       '<span class="checkout-item-price">' + LingerUI.money(entry.lineTotal) + "</span>" +
       "</div>"
     );
@@ -1254,7 +1358,11 @@ const LingerApp = (function () {
           zh: entry.item.zh,
           en: entry.item.en,
           price: entry.item.price,
+          unitPrice: entry.unitPrice,
           qty: entry.qty,
+          options: entry.options,
+          optionsZh: optionText(entry, "zh"),
+          optionsEn: optionText(entry, "en"),
           lineTotal: entry.lineTotal,
         };
       }),
@@ -1333,11 +1441,19 @@ const LingerApp = (function () {
   }
 
   function successItemHTML(line) {
+    var optionsText = L(line.optionsZh || "", line.optionsEn || "");
+
     return (
       '<div class="checkout-item">' +
       '<span class="checkout-item-name">' +
       LingerUI.esc(L(line.zh, line.en)) +
-      '<span class="checkout-item-qty">× ' + LingerUI.esc(line.qty) + "</span></span>" +
+      '<span class="checkout-item-qty">× ' + LingerUI.esc(line.qty) + "</span>" +
+      (optionsText
+        ? '<span class="checkout-item-options">' +
+          LingerUI.esc(optionsText) +
+          "</span>"
+        : "") +
+      "</span>" +
       '<span class="checkout-item-price">' + LingerUI.money(line.lineTotal) + "</span>" +
       "</div>"
     );
@@ -1449,6 +1565,13 @@ const LingerApp = (function () {
     var story = L(item.story || "", item.storyEn || "");
     var desc = L(item.descZh, item.descEn);
     var ingredients = L(item.ingredients || [], item.ingredientsEn || []);
+    var toppingOptions = categoryToppings(category);
+    var hasToppings = toppingOptions.length > 0;
+    var hasSweetness = itemSupports(item, "sweetness");
+    var hasIce = itemSupports(item, "ice");
+    var selectedToppings = [];
+    var selectedSweetness = hasSweetness ? defaultChoice("sweetness") : "";
+    var selectedIce = hasIce ? defaultChoice("ice") : "";
 
     var storyHTML = story
       ? '<blockquote class="modal-story">' + LingerUI.esc(story) + "</blockquote>"
@@ -1460,6 +1583,100 @@ const LingerApp = (function () {
         : '<span class="allergen-empty">' +
           LingerUI.esc(L("未標示致敏原", "No listed allergens")) +
           "</span>";
+
+    var toppingsHTML = hasToppings
+      ? '<section class="modal-section modal-section--options">' +
+        '<h3 class="modal-section-title">' +
+        LingerUI.esc(L("加配料（可選）", "Add Toppings (Optional)")) +
+        "</h3>" +
+        '<p class="modal-option-note">' +
+        LingerUI.esc(
+          L(
+            "每份甜品均可加選，可選多項。",
+            "Available with any dessert; choose as many as you like."
+          )
+        ) +
+        "</p>" +
+        '<div class="option-grid" role="group" aria-label="' +
+        LingerUI.esc(L("加配料", "Add toppings")) +
+        '">' +
+        toppingOptions
+          .map(function (topping) {
+            return (
+              '<button type="button" class="option-pill option-pill--topping" ' +
+              'data-topping="' + LingerUI.esc(topping.id) + '" aria-pressed="false">' +
+              '<span class="option-pill-label">' +
+              LingerUI.esc(L(topping.zh, topping.en)) +
+              "</span>" +
+              '<span class="option-pill-price">+ ' +
+              LingerUI.money(topping.price) +
+              "</span>" +
+              "</button>"
+            );
+          })
+          .join("") +
+        "</div>" +
+        "</section>"
+      : "";
+
+    var drinkOptionsHTML =
+      hasSweetness || hasIce
+        ? '<section class="modal-section modal-section--options">' +
+          '<h3 class="modal-section-title">' +
+          LingerUI.esc(L("飲品選項", "Drink Options")) +
+          "</h3>" +
+          (hasSweetness
+            ? '<p class="modal-option-label">' +
+              LingerUI.esc(L("甜度", "Sweetness")) +
+              "</p>" +
+              '<div class="option-row" role="group" aria-label="' +
+              LingerUI.esc(L("甜度", "Sweetness")) +
+              '">' +
+              choiceList("sweetness")
+                .map(function (choice) {
+                  var active = choice.id === selectedSweetness;
+                  return (
+                    '<button type="button" class="option-pill option-pill--choice' +
+                    (active ? " is-selected" : "") +
+                    '" data-sweetness="' +
+                    LingerUI.esc(choice.id) +
+                    '" aria-pressed="' +
+                    (active ? "true" : "false") +
+                    '">' +
+                    LingerUI.esc(L(choice.zh, choice.en)) +
+                    "</button>"
+                  );
+                })
+                .join("") +
+              "</div>"
+            : "") +
+          (hasIce
+            ? '<p class="modal-option-label">' +
+              LingerUI.esc(L("冰度", "Ice Level")) +
+              "</p>" +
+              '<div class="option-row" role="group" aria-label="' +
+              LingerUI.esc(L("冰度", "Ice Level")) +
+              '">' +
+              choiceList("ice")
+                .map(function (choice) {
+                  var active = choice.id === selectedIce;
+                  return (
+                    '<button type="button" class="option-pill option-pill--choice' +
+                    (active ? " is-selected" : "") +
+                    '" data-ice="' +
+                    LingerUI.esc(choice.id) +
+                    '" aria-pressed="' +
+                    (active ? "true" : "false") +
+                    '">' +
+                    LingerUI.esc(L(choice.zh, choice.en)) +
+                    "</button>"
+                  );
+                })
+                .join("") +
+              "</div>"
+            : "") +
+          "</section>"
+        : "";
 
     var footHTML = tbc
       ? '<div class="modal-foot">' +
@@ -1505,9 +1722,14 @@ const LingerApp = (function () {
       '<p class="modal-price">' + LingerUI.money(item.price) + "</p>" +
       storyHTML +
       '<p class="modal-desc">' + LingerUI.esc(desc) + "</p>" +
+      toppingsHTML +
+      drinkOptionsHTML +
+      (hasToppings || hasSweetness || hasIce
+        ? '<p class="modal-option-summary" data-detail-summary aria-live="polite" hidden></p>'
+        : "") +
       '<section class="modal-section">' +
       '<h3 class="modal-section-title">' +
-      LingerUI.esc(L("配料", "Ingredients")) +
+      LingerUI.esc(L("食材", "Ingredients")) +
       "</h3>" +
       '<ul class="chip-list">' + LingerUI.chipList(ingredients) + "</ul>" +
       "</section>" +
@@ -1538,15 +1760,149 @@ const LingerApp = (function () {
     var minusBtn = dialog.querySelector("[data-detail-minus]");
     var plusBtn = dialog.querySelector("[data-detail-plus]");
     var addBtn = dialog.querySelector("[data-detail-add]");
+    var summaryEl = dialog.querySelector("[data-detail-summary]");
+    var toppingButtons = dialog.querySelectorAll("[data-topping]");
+
+    function toppingsPrice() {
+      var total = 0;
+      toppingOptions.forEach(function (topping) {
+        if (selectedToppings.indexOf(topping.id) !== -1) {
+          total += Number(topping.price) || 0;
+        }
+      });
+      return Math.round(total * 10) / 10;
+    }
+
+    function unitPrice() {
+      return Math.round(((Number(item.price) || 0) + toppingsPrice()) * 10) / 10;
+    }
+
+    function currentOptions() {
+      return {
+        toppings: selectedToppings.slice(),
+        sweetness: selectedSweetness,
+        ice: selectedIce,
+      };
+    }
+
+    function optionSummary() {
+      var parts = [];
+      var lang = LingerI18n.get();
+      var isEn = lang === "en";
+
+      if (selectedSweetness) {
+        parts.push(choiceLabel("sweetness", selectedSweetness, lang));
+      }
+      if (selectedIce) {
+        parts.push(choiceLabel("ice", selectedIce, lang));
+      }
+      if (selectedToppings.length) {
+        var names = toppingOptions
+          .filter(function (topping) {
+            return selectedToppings.indexOf(topping.id) !== -1;
+          })
+          .map(function (topping) {
+            return isEn ? topping.en : topping.zh;
+          });
+        parts.push(
+          (isEn ? "Add " : "加") +
+            names.join(isEn ? ", " : "、") +
+            " · +" +
+            LingerUI.money(toppingsPrice())
+        );
+      }
+
+      return parts.filter(Boolean).join(" · ");
+    }
+
+    function refreshAddButton() {
+      if (addBtn) {
+        addBtn.textContent =
+          L("加入購物車", "Add to Cart") + " · " + LingerUI.money(unitPrice() * qty);
+      }
+    }
+
+    function refreshOptionUI() {
+      for (var i = 0; i < toppingButtons.length; i++) {
+        var button = toppingButtons[i];
+        var toppingId = button.getAttribute("data-topping");
+        var selected = selectedToppings.indexOf(toppingId) !== -1;
+        button.setAttribute("aria-pressed", selected ? "true" : "false");
+        button.classList.toggle("is-selected", selected);
+      }
+
+      var sweetnessButtons = dialog.querySelectorAll("[data-sweetness]");
+      for (var j = 0; j < sweetnessButtons.length; j++) {
+        var sweetButton = sweetnessButtons[j];
+        var sweetSelected =
+          sweetButton.getAttribute("data-sweetness") === selectedSweetness;
+        sweetButton.setAttribute("aria-pressed", sweetSelected ? "true" : "false");
+        sweetButton.classList.toggle("is-selected", sweetSelected);
+      }
+
+      var iceButtons = dialog.querySelectorAll("[data-ice]");
+      for (var k = 0; k < iceButtons.length; k++) {
+        var iceButton = iceButtons[k];
+        var iceSelected = iceButton.getAttribute("data-ice") === selectedIce;
+        iceButton.setAttribute("aria-pressed", iceSelected ? "true" : "false");
+        iceButton.classList.toggle("is-selected", iceSelected);
+      }
+
+      if (summaryEl) {
+        var text = optionSummary();
+        summaryEl.textContent = text;
+        summaryEl.hidden = !text;
+      }
+
+      refreshAddButton();
+    }
 
     function refreshQty() {
       if (qtyEl) qtyEl.textContent = String(qty);
       if (minusBtn) minusBtn.disabled = qty <= 1;
       if (plusBtn) plusBtn.disabled = qty >= LingerCart.maxQty();
-      if (addBtn) {
-        addBtn.textContent =
-          L("加入購物車", "Add to Cart") + " · " + LingerUI.money(item.price * qty);
-      }
+      refreshAddButton();
+    }
+
+    for (var t = 0; t < toppingButtons.length; t++) {
+      toppingButtons[t].addEventListener("click", function () {
+        var toppingId = this.getAttribute("data-topping");
+        var index = selectedToppings.indexOf(toppingId);
+
+        if (index === -1) {
+          selectedToppings.push(toppingId);
+        } else {
+          selectedToppings.splice(index, 1);
+        }
+
+        // 依菜單順序保存，讓同組合的小料產生同一個購物車列。
+        var chosen = selectedToppings.slice();
+        selectedToppings = toppingOptions
+          .map(function (topping) {
+            return topping.id;
+          })
+          .filter(function (id) {
+            return chosen.indexOf(id) !== -1;
+          });
+
+        refreshOptionUI();
+      });
+    }
+
+    var sweetnessButtons = dialog.querySelectorAll("[data-sweetness]");
+    for (var s = 0; s < sweetnessButtons.length; s++) {
+      sweetnessButtons[s].addEventListener("click", function () {
+        selectedSweetness = this.getAttribute("data-sweetness");
+        refreshOptionUI();
+      });
+    }
+
+    var iceButtons = dialog.querySelectorAll("[data-ice]");
+    for (var c = 0; c < iceButtons.length; c++) {
+      iceButtons[c].addEventListener("click", function () {
+        selectedIce = this.getAttribute("data-ice");
+        refreshOptionUI();
+      });
     }
 
     if (minusBtn) {
@@ -1576,7 +1932,7 @@ const LingerApp = (function () {
 
     if (addBtn) {
       addBtn.addEventListener("click", function () {
-        LingerCart.add(item.id, qty);
+        LingerCart.add(item.id, qty, currentOptions());
         syncCartUI();
         modal.close();
         LingerUI.toast(L("已加入購物車 · ", "Added to cart · ") + name, {
@@ -1595,6 +1951,7 @@ const LingerApp = (function () {
       }
     });
 
+    refreshOptionUI();
     refreshQty();
   }
 
